@@ -1,0 +1,453 @@
+---
+import PageHeader from '../../components/PageHeader.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { siteConfig } from '../../site.config';
+
+const isDevelopment = import.meta.env.DEV;
+---
+
+<BaseLayout
+	title={`搜索｜${siteConfig.title}`}
+	description={`搜索${siteConfig.title}已经发布的文章。`}
+	pageKind="search"
+	canonicalPath="/search/"
+>
+	<PageHeader
+		eyebrow="全文检索"
+		title="搜索"
+		description="从已经发布的文章标题、摘要、标签和正文中查找内容。"
+	/>
+
+	<section
+		class="search-page"
+		aria-label="文章搜索"
+		data-search-root
+		data-mode={isDevelopment ? 'development' : 'production'}
+		data-locale={siteConfig.locale}
+		data-timezone={siteConfig.timezone}
+	>
+		<form class="search-form" role="search" action="/search/" method="get" data-search-form>
+			<label for="search-query">搜索关键词</label>
+			<input
+				id="search-query"
+				name="q"
+				type="search"
+				maxlength="100"
+				autocomplete="off"
+				placeholder="例如：静态博客、Markdown、技术"
+				aria-describedby="search-help search-status"
+				disabled={isDevelopment}
+				data-search-input
+			/>
+			<p id="search-help" class="search-form__help">
+				输入关键词后会自动搜索；按 Escape 可以清空当前搜索。
+			</p>
+		</form>
+
+		{isDevelopment && (
+			<p class="search-notice" data-search-development-note>
+				搜索索引将在生产构建后可用，请使用生产构建预览验证。
+			</p>
+		)}
+
+		<p class="search-notice search-no-script">
+			搜索需要浏览器启用 JavaScript。你仍然可以浏览<a href="/posts/">全部文章</a>、<a href="/tags/">标签</a>和<a href="/archive/">归档</a>。
+		</p>
+
+		<p
+			id="search-status"
+			class="search-status"
+			role="status"
+			aria-live="polite"
+			data-search-status
+		>
+			{isDevelopment ? '搜索索引尚未载入。' : '输入关键词开始搜索。'}
+		</p>
+
+		<p class="search-error" hidden data-search-error>
+			搜索暂时不可用，请稍后重试。你也可以先<a href="/posts/">浏览全部文章</a>。
+		</p>
+
+		<ol class="search-results" aria-label="搜索结果" hidden data-search-results></ol>
+
+		<nav class="search-fallback-links" aria-label="其他内容浏览方式">
+			<a href="/posts/">全部文章</a>
+			<a href="/tags/">标签</a>
+			<a href="/archive/">归档</a>
+		</nav>
+	</section>
+</BaseLayout>
+
+<script>
+	interface PagefindResultData {
+		url: string;
+		excerpt: string;
+		meta: Record<string, string>;
+	}
+
+	interface PagefindSearchResult {
+		data(): Promise<PagefindResultData>;
+	}
+
+	interface PagefindApi {
+		init?(): Promise<void>;
+		preload?(query: string): Promise<void> | void;
+		search(query: string): Promise<{ results: PagefindSearchResult[] }>;
+	}
+
+	function initializeSearch() {
+		const root = document.querySelector<HTMLElement>('[data-search-root]');
+
+		if (!root || root.dataset.mode === 'development') {
+			return;
+		}
+
+		const form = root.querySelector<HTMLFormElement>('[data-search-form]');
+		const input = root.querySelector<HTMLInputElement>('[data-search-input]');
+		const status = root.querySelector<HTMLElement>('[data-search-status]');
+		const error = root.querySelector<HTMLElement>('[data-search-error]');
+		const results = root.querySelector<HTMLOListElement>('[data-search-results]');
+
+		if (!form || !input || !status || !error || !results) {
+			return;
+		}
+
+		const locale = root.dataset.locale ?? 'zh-CN';
+		const timezone = root.dataset.timezone ?? 'Asia/Shanghai';
+		const dateFormatter = new Intl.DateTimeFormat(locale, {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric',
+			timeZone: timezone,
+		});
+		let pagefindPromise: Promise<PagefindApi> | undefined;
+		let debounceTimer: number | undefined;
+		let activeRequest = 0;
+		const pagefindModulePath = '/pagefind/pagefind.js';
+
+		const loadPagefind = () => {
+			pagefindPromise ??= import(/* @vite-ignore */ pagefindModulePath).then(
+				async (module) => {
+					const pagefind = module as PagefindApi;
+					await pagefind.init?.();
+					return pagefind;
+				},
+			);
+
+			return pagefindPromise;
+		};
+
+		const setStatus = (message: string) => {
+			status.textContent = message;
+		};
+
+		const setUrlQuery = (query: string) => {
+			const url = new URL(window.location.href);
+
+			if (query) {
+				url.searchParams.set('q', query);
+			} else {
+				url.searchParams.delete('q');
+			}
+
+			window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+		};
+
+		const clearResults = () => {
+			results.replaceChildren();
+			results.hidden = true;
+			error.hidden = true;
+		};
+
+		const parseTags = (value: string | undefined): string[] => {
+			if (!value) {
+				return [];
+			}
+
+			try {
+				const parsed: unknown = JSON.parse(value);
+
+				return Array.isArray(parsed)
+					? parsed.filter((tag): tag is string => typeof tag === 'string')
+					: [];
+			} catch {
+				return [];
+			}
+		};
+
+		const getInternalResultUrl = (value: string): string => {
+			const url = new URL(value, window.location.origin);
+
+			if (url.origin !== window.location.origin) {
+				return '/posts/';
+			}
+
+			return `${url.pathname}${url.search}${url.hash}`;
+		};
+
+		const renderResult = (result: PagefindResultData) => {
+			const item = document.createElement('li');
+			const article = document.createElement('article');
+			const title = document.createElement('h2');
+			const link = document.createElement('a');
+			const excerpt = document.createElement('p');
+			const metadata = document.createElement('div');
+			const tags = parseTags(result.meta.tags);
+
+			item.className = 'search-result';
+			article.className = 'search-result__article';
+			link.href = getInternalResultUrl(result.url);
+			link.textContent = result.meta.title || '未命名文章';
+			excerpt.className = 'search-result__excerpt';
+			excerpt.innerHTML = result.excerpt;
+			metadata.className = 'search-result__meta';
+
+			if (result.meta.publishedAt) {
+				const publishedAt = new Date(result.meta.publishedAt);
+
+				if (!Number.isNaN(publishedAt.getTime())) {
+					const time = document.createElement('time');
+					time.dateTime = result.meta.publishedAt;
+					time.textContent = dateFormatter.format(publishedAt);
+					metadata.append(time);
+				}
+			}
+
+			if (tags.length > 0) {
+				const tagList = document.createElement('ul');
+				tagList.className = 'search-result__tags';
+				tagList.setAttribute('aria-label', '文章标签');
+
+				tags.forEach((tag) => {
+					const tagItem = document.createElement('li');
+					tagItem.textContent = tag;
+					tagList.append(tagItem);
+				});
+
+				metadata.append(tagList);
+			}
+
+			title.append(link);
+			article.append(title, excerpt, metadata);
+			item.append(article);
+
+			return item;
+		};
+
+		const performSearch = async (rawQuery: string) => {
+			const query = rawQuery.trim().slice(0, 100);
+			const requestId = ++activeRequest;
+
+			input.value = query;
+			setUrlQuery(query);
+			clearResults();
+
+			if (!query) {
+				setStatus('输入关键词开始搜索。');
+				return;
+			}
+
+			setStatus('正在搜索……');
+
+			try {
+				const pagefind = await loadPagefind();
+				const search = await pagefind.search(query);
+				const loadedResults = await Promise.all(search.results.map((result) => result.data()));
+
+				if (requestId !== activeRequest) {
+					return;
+				}
+
+				if (loadedResults.length === 0) {
+					setStatus(`没有找到与“${query}”相关的文章。`);
+					return;
+				}
+
+				results.append(...loadedResults.map(renderResult));
+				results.hidden = false;
+				setStatus(`找到 ${loadedResults.length} 篇相关文章。`);
+			} catch {
+				if (requestId !== activeRequest) {
+					return;
+				}
+
+				setStatus('搜索加载失败。');
+				error.hidden = false;
+			}
+		};
+
+		const scheduleSearch = () => {
+			window.clearTimeout(debounceTimer);
+			const query = input.value.trim().slice(0, 100);
+
+			if (!query) {
+				void performSearch('');
+				return;
+			}
+
+			void loadPagefind()
+				.then((pagefind) => pagefind.preload?.(query))
+				.catch(() => undefined);
+			debounceTimer = window.setTimeout(() => void performSearch(query), 200);
+		};
+
+		form.addEventListener('submit', (event) => {
+			event.preventDefault();
+			window.clearTimeout(debounceTimer);
+			void performSearch(input.value);
+		});
+
+		input.addEventListener('input', scheduleSearch);
+		input.addEventListener('focus', () => void loadPagefind().catch(() => undefined), {
+			once: true,
+		});
+		input.addEventListener('keydown', (event) => {
+			if (event.key !== 'Escape') {
+				return;
+			}
+
+			event.preventDefault();
+			window.clearTimeout(debounceTimer);
+			input.value = '';
+			void performSearch('');
+		});
+
+		const initialQuery = new URL(window.location.href).searchParams.get('q')?.slice(0, 100) ?? '';
+		input.value = initialQuery;
+
+		if (initialQuery.trim()) {
+			void performSearch(initialQuery);
+		}
+	}
+
+	initializeSearch();
+</script>
+
+<style>
+	.search-page {
+		display: grid;
+		width: min(100%, var(--reading-max));
+		margin-block-start: var(--space-7);
+		gap: var(--space-5);
+	}
+
+	.search-form {
+		display: grid;
+		gap: var(--space-2);
+	}
+
+	.search-form label {
+		font-family: var(--font-serif);
+		font-size: 1.125rem;
+		font-weight: 700;
+	}
+
+	.search-form input {
+		width: 100%;
+		min-height: 3.25rem;
+		padding-inline: var(--space-4);
+		border: 1px solid var(--color-control-border);
+		border-radius: var(--radius-small);
+		background: var(--color-background);
+		color: var(--color-text);
+		font: inherit;
+	}
+
+	.search-form input:disabled {
+		cursor: not-allowed;
+		opacity: 0.65;
+	}
+
+	.search-form__help,
+	.search-status,
+	.search-error,
+	.search-notice {
+		margin: 0;
+		color: var(--color-muted);
+	}
+
+	.search-form__help {
+		font-size: 0.875rem;
+	}
+
+	.search-notice,
+	.search-error {
+		padding: var(--space-4);
+		border: 1px solid var(--color-border);
+		border-inline-start: 4px solid var(--color-accent);
+		border-radius: var(--radius-small);
+	}
+
+	:global(.js) .search-no-script {
+		display: none;
+	}
+
+	.search-results {
+		display: grid;
+		margin: 0;
+		padding: 0;
+		gap: var(--space-4);
+		list-style: none;
+	}
+
+	.search-result__article {
+		display: grid;
+		padding-block: var(--space-5);
+		border-block-start: 1px solid var(--color-border);
+		gap: var(--space-3);
+	}
+
+	.search-result h2,
+	.search-result p {
+		margin: 0;
+	}
+
+	.search-result h2 {
+		font-family: var(--font-serif);
+		font-size: clamp(1.35rem, 3vw, 1.75rem);
+		line-height: 1.3;
+	}
+
+	.search-result__excerpt {
+		color: var(--color-muted);
+	}
+
+	.search-result__excerpt :global(mark) {
+		padding-inline: 0.1em;
+		background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+		color: var(--color-text);
+	}
+
+	.search-result__meta {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: var(--space-3);
+		color: var(--color-muted);
+		font-size: 0.875rem;
+	}
+
+	.search-result__tags {
+		display: flex;
+		margin: 0;
+		padding: 0;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+		list-style: none;
+	}
+
+	.search-result__tags li {
+		padding: 0.15rem var(--space-2);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-pill);
+		color: var(--color-text);
+	}
+
+	.search-fallback-links {
+		display: flex;
+		padding-block-start: var(--space-5);
+		border-block-start: 1px solid var(--color-border);
+		flex-wrap: wrap;
+		gap: var(--space-4);
+	}
+</style>

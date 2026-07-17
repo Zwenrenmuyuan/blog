@@ -6,12 +6,13 @@ interface Props {
   tagIds: TagId[];
   linked?: boolean;
   label?: string;
+  searchable?: boolean;
 }
 
-const { tagIds, linked = false, label = '文章标签' } = Astro.props;
+const { tagIds, linked = false, label = '文章标签', searchable = false } = Astro.props;
 ---
 
-<ul class="tag-list" aria-label={label}>
+<ul class="tag-list" aria-label={label} data-pagefind-body={searchable ? true : undefined}>
 	{tagIds.map((tagId) => (
 		<li>
 		<TagPill label={getTag(tagId).label} href={linked ? getTagPath(tagId) : undefined} />

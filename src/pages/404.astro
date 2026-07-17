@@ -5,8 +5,10 @@ import { siteConfig } from '../site.config';
 ---
 
 <BaseLayout
-	title={`页面未找到 | ${siteConfig.title}`}
+	title={`页面未找到｜${siteConfig.title}`}
 	description="请求的页面不存在，可能已经移动、地址有误或尚未发布。"
+	pageKind="not-found"
+	canonicalPath={false}
 >
 	<PageHeader
 		eyebrow="404"

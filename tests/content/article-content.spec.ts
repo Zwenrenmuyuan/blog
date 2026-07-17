@@ -19,6 +19,24 @@ test('草稿样式页渲染完整正文、封面和 MDX 内容', async ({ page }
   await expect(page.locator('table')).toBeVisible();
 });
 
+test('草稿预览明确禁止索引且不输出公开 SEO 或 Pagefind 数据', async ({ page }) => {
+  await page.goto(route);
+
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
+  await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+  await expect(page.locator('meta[property^="og:"]')).toHaveCount(0);
+  await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
+  await expect(page.locator('[data-pagefind-body]')).toHaveCount(0);
+});
+
+test('开发模式搜索页显示生产索引提示并禁用输入', async ({ page }) => {
+  await page.goto('/search/');
+
+  await expect(page.getByText('搜索索引将在生产构建后可用')).toBeVisible();
+  await expect(page.getByRole('searchbox', { name: '搜索关键词' })).toBeDisabled();
+  await expect(page.locator('[data-search-status]')).toHaveText('搜索索引尚未载入。');
+});
+
 test('目录在宽屏使用固定侧栏，在窄屏使用折叠目录且页面不溢出', async ({ page }) => {
   for (const width of [360, 768, 1280]) {
     await page.setViewportSize({ width, height: 900 });

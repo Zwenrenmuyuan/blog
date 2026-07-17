@@ -10,6 +10,7 @@ export const primaryNavigation = [
   { label: '标签', href: '/tags/', match: 'prefix' },
   { label: '归档', href: '/archive/', match: 'exact' },
   { label: '关于', href: '/about/', match: 'exact' },
+  { label: '搜索', href: '/search/', match: 'exact' },
 ] satisfies NavigationItem[];
 
 export function isNavigationItemCurrent(item: NavigationItem, currentPath: string): boolean {

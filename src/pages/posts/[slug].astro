@@ -8,9 +8,10 @@ import ArticleToc from '../../components/ArticleToc.astro';
 import PostNavigation from '../../components/PostNavigation.astro';
 import RelatedPosts from '../../components/RelatedPosts.astro';
 import TagList from '../../components/TagList.astro';
+import { getTag } from '../../data/tags';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { formatLongDate } from '../../lib/date';
-import { getPosts, type Post } from '../../lib/posts';
+import { getPostPath, getPosts, type Post } from '../../lib/posts';
 import {
   buildTableOfContents,
   calculateReadingMinutes,
@@ -53,18 +54,47 @@ const tocHeadings = headings.filter(
 const hasTableOfContents = tocHeadings.length >= 2;
 const tableOfContents = hasTableOfContents ? buildTableOfContents(tocHeadings) : [];
 const readingMinutes = calculateReadingMinutes(post.body ?? '');
+const tagLabels = post.data.tags.map((tagId) => getTag(tagId).label);
+const seoImage = post.data.cover && post.data.coverAlt
+  ? {
+      src: post.data.cover.src,
+      alt: post.data.coverAlt,
+      width: post.data.cover.width,
+      height: post.data.cover.height,
+    }
+  : undefined;
 ---
 
 <BaseLayout
-	title={`${post.data.title} | ${siteConfig.title}`}
+	title={`${post.data.title}｜${siteConfig.title}`}
 	description={post.data.description}
+	pageKind="article"
+	canonicalPath={post.data.draft ? false : getPostPath(post) as `/posts/${string}/`}
+	image={seoImage}
+	article={{
+		headline: post.data.title,
+		publishedAt: post.data.publishedAt,
+		updatedAt: post.data.updatedAt,
+		tags: tagLabels,
+		draft: post.data.draft,
+	}}
 >
 	<article class="post" data-article>
 		<header class="post__header">
 			{post.data.draft && <p class="post__draft" role="status">草稿预览</p>}
 			<p class="post__eyebrow">旁注 · 文章</p>
-			<h1>{post.data.title}</h1>
-			<p class="post__description">{post.data.description}</p>
+			<h1
+				data-pagefind-body={post.data.draft ? undefined : true}
+				data-pagefind-meta={post.data.draft ? undefined : 'title'}
+			>
+				{post.data.title}
+			</h1>
+			<p
+				class="post__description"
+				data-pagefind-body={post.data.draft ? undefined : true}
+			>
+				{post.data.description}
+			</p>
 			<div class="post__meta">
 				<p>
 					<span>发布于 </span>
@@ -81,7 +111,7 @@ const readingMinutes = calculateReadingMinutes(post.body ?? '');
 					</p>
 				)}
 				<p data-reading-time>约 {readingMinutes} 分钟阅读</p>
-				<TagList tagIds={post.data.tags} linked />
+				<TagList tagIds={post.data.tags} linked searchable={!post.data.draft} />
 			</div>
 		</header>
 		{post.data.cover && post.data.coverAlt && (
@@ -101,7 +131,11 @@ const readingMinutes = calculateReadingMinutes(post.body ?? '');
 		>
 			{hasTableOfContents && <ArticleToc items={tableOfContents} />}
 			<div class="post__content">
-				<div class="prose" data-article-body>
+				<div
+					class="prose"
+					data-article-body
+					data-pagefind-body={post.data.draft ? undefined : true}
+				>
 					<Content components={{ input: AccessibleArticleInput }} />
 				</div>
 				<ArticleEnhancements />

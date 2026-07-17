@@ -9,6 +9,7 @@ const { year } = Astro.props;
 <footer class="site-footer">
 	<div class="site-footer__inner">
 		<p><span aria-hidden="true">©</span> {year} 旁注</p>
+		<a href="/rss.xml">RSS</a>
 		<slot />
 	</div>
 </footer>
@@ -32,5 +33,9 @@ const { year } = Astro.props;
 
 	.site-footer p {
 		margin: 0;
+	}
+
+	.site-footer a {
+		font-weight: 700;
 	}
 </style>

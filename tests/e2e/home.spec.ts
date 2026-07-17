@@ -5,7 +5,7 @@ test('最小首页可以通过生产预览访问', async ({ page }) => {
   const response = await page.goto('/');
 
   expect(response?.ok()).toBe(true);
-  await expect(page).toHaveTitle('旁注');
+  await expect(page).toHaveTitle('旁注｜记录技术、生活与阅读之间的思考');
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
 
   const heading = page.getByRole('heading', { level: 1, name: '旁注' });

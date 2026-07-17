@@ -12,8 +12,9 @@ const archive = groupPostsByArchive(posts, siteConfig.timezone);
 ---
 
 <BaseLayout
-	title={`归档 | ${siteConfig.title}`}
+	title={`归档｜${siteConfig.title}`}
 	description={`按年份和月份浏览${siteConfig.title}已经发布的文章。`}
+	pageKind="collection"
 >
 	<PageHeader
 		eyebrow="时间索引"

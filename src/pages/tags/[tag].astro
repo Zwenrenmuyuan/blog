@@ -33,8 +33,9 @@ const { tag, tagCount, posts } = Astro.props;
 ---
 
 <BaseLayout
-	title={`${tag.label} | 标签 | ${siteConfig.title}`}
+	title={`${tag.label}｜标签｜${siteConfig.title}`}
 	description={`${tag.description}，共 ${tagCount.count} 篇文章。`}
+	pageKind="collection"
 >
 	<PageHeader
 		eyebrow="标签"

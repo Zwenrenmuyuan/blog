@@ -11,18 +11,20 @@ const publicRoutes = [
   '/tags/reading/',
   '/archive/',
   '/about/',
+  '/search/',
 ];
 
 const pageContracts = [
-  { route: '/', title: '旁注', heading: '旁注' },
-  { route: '/posts/', title: '全部文章 | 旁注', heading: '全部文章' },
-  { route: '/posts/welcome/', title: '欢迎来到旁注 | 旁注', heading: '欢迎来到旁注' },
-  { route: '/tags/', title: '标签 | 旁注', heading: '标签' },
-  { route: '/tags/technology/', title: '技术 | 标签 | 旁注', heading: '技术' },
-  { route: '/tags/life/', title: '生活 | 标签 | 旁注', heading: '生活' },
-  { route: '/tags/reading/', title: '阅读 | 标签 | 旁注', heading: '阅读' },
-  { route: '/archive/', title: '归档 | 旁注', heading: '归档' },
-  { route: '/about/', title: '关于 | 旁注', heading: '关于旁注' },
+  { route: '/', title: '旁注｜记录技术、生活与阅读之间的思考', heading: '旁注' },
+  { route: '/posts/', title: '全部文章｜旁注', heading: '全部文章' },
+  { route: '/posts/welcome/', title: '欢迎来到旁注｜旁注', heading: '欢迎来到旁注' },
+  { route: '/tags/', title: '标签｜旁注', heading: '标签' },
+  { route: '/tags/technology/', title: '技术｜标签｜旁注', heading: '技术' },
+  { route: '/tags/life/', title: '生活｜标签｜旁注', heading: '生活' },
+  { route: '/tags/reading/', title: '阅读｜标签｜旁注', heading: '阅读' },
+  { route: '/archive/', title: '归档｜旁注', heading: '归档' },
+  { route: '/about/', title: '关于｜旁注', heading: '关于旁注' },
+  { route: '/search/', title: '搜索｜旁注', heading: '搜索' },
 ];
 
 async function expectNoPageOverflow(page: Page, route: string): Promise<void> {
@@ -61,6 +63,7 @@ test('首页使用真实文章完成精选去重、最近更新和常用标签',
   await expect(recent.locator('[data-empty-state]')).toContainText('暂时没有更多更新');
   await expect(page.locator('[data-home-section="tags"] li')).toHaveCount(3);
   await expect(page.getByRole('link', { name: '查看全部文章' })).toHaveAttribute('href', '/posts/');
+  await expect(page.getByRole('link', { name: '订阅 RSS' })).toHaveAttribute('href', '/rss.xml');
 });
 
 test('文章列表、标签计数和归档使用同一份公开内容', async ({ page }) => {
@@ -117,7 +120,7 @@ test('未知标签和不存在地址使用自定义 404', async ({ page }) => {
     const response = await page.goto(route);
 
     expect(response?.status(), route).toBe(404);
-    await expect(page).toHaveTitle('页面未找到 | 旁注');
+    await expect(page).toHaveTitle('页面未找到｜旁注');
     await expect(page.getByRole('heading', { level: 1, name: '页面没有找到' })).toBeVisible();
     await expect(page.getByRole('link', { name: '返回首页' })).toHaveAttribute('href', '/');
     await expect(page.getByRole('link', { name: '浏览全部文章' })).toHaveAttribute('href', '/posts/');
@@ -159,7 +162,7 @@ test('所有公开页面的站内链接可访问并遵守尾斜杠规则', async
 
   for (const href of hrefs) {
     const path = new URL(href, 'http://127.0.0.1:4321').pathname;
-    expect(path === '/' || path === '/404.html' || path.endsWith('/'), href).toBe(true);
+    expect(path === '/' || path === '/404.html' || path === '/rss.xml' || path.endsWith('/'), href).toBe(true);
 
     const response = await request.get(path);
     expect(response.ok(), href).toBe(true);
