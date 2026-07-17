@@ -2,7 +2,7 @@ import { resolveSiteUrl } from './lib/site-url.ts';
 
 export interface SiteConfig {
   title: '旁注';
-  tagline: '记录技术、生活与阅读之间的思考';
+  tagline: '生活和工作是正文，这里记录沿途的旁注';
   description: string;
   locale: 'zh-CN';
   timezone: 'Asia/Shanghai';
@@ -13,14 +13,13 @@ export interface SiteConfig {
 
 export const siteConfig = {
   title: '旁注',
-  tagline: '记录技术、生活与阅读之间的思考',
-  description:
-    '旁注是一份记录技术、生活与阅读的中文个人刊物，收集实践中的方法、日常里的观察，以及值得反复翻阅的片段。',
+  tagline: '生活和工作是正文，这里记录沿途的旁注',
+  description: '旁注是一个记录技术实践、生活观察和阅读思考的个人博客。',
   locale: 'zh-CN',
   timezone: 'Asia/Shanghai',
   siteUrl: resolveSiteUrl(import.meta.env?.SITE_URL),
   defaultOgImage: '/og-default.png',
-  defaultOgImageAlt: '旁注：记录技术、生活与阅读之间的思考',
+  defaultOgImageAlt: '旁注：生活和工作是正文，这里记录沿途的旁注',
 } satisfies SiteConfig;
 
 export function getAbsoluteSiteUrl(path: `/${string}`): string {

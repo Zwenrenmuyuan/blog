@@ -48,7 +48,7 @@ test('RSS 只选择最近二十项且不修改输入数组', () => {
 test('分享图默认回退并保留文章封面信息', () => {
   assert.deepEqual(getDefaultSeoImage(), {
     src: '/og-default.png',
-    alt: '旁注：记录技术、生活与阅读之间的思考',
+    alt: '旁注：生活和工作是正文，这里记录沿途的旁注',
     width: 1200,
     height: 630,
   });
@@ -63,7 +63,7 @@ test('首页、栏目和关于页生成对应结构化数据', () => {
     createStructuredData({
       pageKind: 'home',
       canonicalUrl: 'http://localhost:4321/',
-      title: '旁注｜记录技术、生活与阅读之间的思考',
+      title: '旁注｜生活和工作是正文，这里记录沿途的旁注',
       description: '站点摘要',
     })[0],
   );

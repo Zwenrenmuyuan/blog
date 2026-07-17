@@ -15,7 +15,7 @@ const publicRoutes = [
 ];
 
 const pageContracts = [
-  { route: '/', title: '旁注｜记录技术、生活与阅读之间的思考', heading: '旁注' },
+  { route: '/', title: '旁注｜生活和工作是正文，这里记录沿途的旁注', heading: '旁注' },
   { route: '/posts/', title: '全部文章｜旁注', heading: '全部文章' },
   { route: '/posts/welcome/', title: '欢迎来到旁注｜旁注', heading: '欢迎来到旁注' },
   { route: '/tags/', title: '标签｜旁注', heading: '标签' },
