@@ -1,0 +1,31 @@
+---
+import { getTag, type TagId } from '../data/tags';
+import TagPill from './TagPill.astro';
+
+interface Props {
+  tagIds: TagId[];
+  linked?: boolean;
+  label?: string;
+}
+
+const { tagIds, linked = false, label = '文章标签' } = Astro.props;
+---
+
+<ul class="tag-list" aria-label={label}>
+	{tagIds.map((tagId) => (
+		<li>
+			<TagPill label={getTag(tagId).label} href={linked ? `/tags/${tagId}/` : undefined} />
+		</li>
+	))}
+</ul>
+
+<style>
+	.tag-list {
+		display: flex;
+		margin: 0;
+		padding: 0;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+		list-style: none;
+	}
+</style>

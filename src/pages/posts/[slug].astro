@@ -1,7 +1,8 @@
 ---
 import { render, type CollectionEntry } from 'astro:content';
 
-import { getTag } from '../../data/tags';
+import TagList from '../../components/TagList.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getPosts } from '../../lib/posts';
 import { siteConfig } from '../../site.config';
 
@@ -20,40 +21,104 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
-const postTags = post.data.tags.map((tagId) => getTag(tagId));
 const dateFormatter = new Intl.DateTimeFormat(siteConfig.locale, {
   dateStyle: 'long',
   timeZone: siteConfig.timezone,
 });
 ---
 
-<!doctype html>
-<html lang={siteConfig.locale}>
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<meta name="description" content={post.data.description} />
-		<title>{post.data.title} | {siteConfig.title}</title>
-	</head>
-	<body>
-		<main>
-			<article>
-				{post.data.draft && <p role="status">草稿预览</p>}
-				<header>
-					<h1>{post.data.title}</h1>
-					<p>{post.data.description}</p>
-					<p>
-						<time datetime={post.data.publishedAt.toISOString()}>
-							{dateFormatter.format(post.data.publishedAt)}
-						</time>
-					</p>
-					<ul aria-label="文章标签">
-						{postTags.map((tag) => <li>{tag.label}</li>)}
-					</ul>
-				</header>
-				<Content />
-			</article>
-		</main>
-	</body>
-</html>
+<BaseLayout
+	title={`${post.data.title} | ${siteConfig.title}`}
+	description={post.data.description}
+>
+	<article class="post">
+		<header class="post__header">
+			{post.data.draft && <p class="post__draft" role="status">草稿预览</p>}
+			<p class="post__eyebrow">旁注 · 文章</p>
+			<h1>{post.data.title}</h1>
+			<p class="post__description">{post.data.description}</p>
+			<div class="post__meta">
+				<p>
+					<span class="visually-hidden">发布于</span>
+					<time datetime={post.data.publishedAt.toISOString()}>
+						{dateFormatter.format(post.data.publishedAt)}
+					</time>
+				</p>
+				<TagList tagIds={post.data.tags} />
+			</div>
+		</header>
+		<div class="prose">
+			<Content />
+		</div>
+	</article>
+</BaseLayout>
+
+<style>
+	.post {
+		width: min(100%, var(--reading-max));
+		margin-inline: auto;
+	}
+
+	.post__header {
+		display: grid;
+		padding-block-end: var(--space-7);
+		border-block-end: 1px solid var(--color-border);
+		gap: var(--space-4);
+	}
+
+	.post__eyebrow,
+	.post__draft {
+		margin: 0;
+		color: var(--color-accent);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+	}
+
+	.post__draft {
+		width: fit-content;
+		padding: var(--space-1) var(--space-3);
+		border: 1px solid var(--color-accent);
+		border-radius: var(--radius-pill);
+		letter-spacing: 0.06em;
+	}
+
+	.post h1 {
+		margin: 0;
+		font-family: var(--font-serif);
+		font-size: clamp(2rem, 5vw, 3.75rem);
+		line-height: 1.18;
+	}
+
+	.post__description {
+		max-width: 40rem;
+		margin: 0;
+		color: var(--color-muted);
+		font-size: clamp(1.05rem, 2vw, 1.2rem);
+	}
+
+	.post__meta {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-4);
+	}
+
+	.post__meta p {
+		margin: 0;
+		color: var(--color-muted);
+		font-size: 0.875rem;
+		white-space: nowrap;
+	}
+
+	.post > .prose {
+		margin-block-start: var(--space-7);
+	}
+
+	@media (max-width: 36rem) {
+		.post__meta {
+			align-items: start;
+			flex-direction: column;
+		}
+	}
+</style>

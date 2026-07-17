@@ -1,0 +1,221 @@
+---
+import type { NavigationItem } from '../data/navigation';
+import ThemePicker from './ThemePicker.astro';
+
+interface Props {
+  currentPath: string;
+  items: NavigationItem[];
+}
+
+const { currentPath, items } = Astro.props;
+---
+
+<header class="site-header">
+	<div class="site-header__inner">
+		<a class="site-header__brand" href="/">旁注</a>
+		<nav class="site-navigation desktop-navigation" aria-label="主导航">
+			<ul>
+				{items.map((item) => (
+					<li>
+						<a
+							class:list={{ 'is-current': currentPath === item.href }}
+							href={item.href}
+							aria-current={currentPath === item.href ? 'page' : undefined}
+						>
+							{item.label}
+						</a>
+					</li>
+				))}
+			</ul>
+		</nav>
+		<details class="mobile-navigation" data-mobile-navigation>
+			<summary class="mobile-navigation__summary" aria-label="打开主导航">菜单</summary>
+			<nav class="site-navigation mobile-navigation__panel" aria-label="主导航">
+				<ul>
+					{items.map((item) => (
+						<li>
+							<a
+								class:list={{ 'is-current': currentPath === item.href }}
+								href={item.href}
+								aria-current={currentPath === item.href ? 'page' : undefined}
+							>
+								{item.label}
+							</a>
+						</li>
+					))}
+				</ul>
+			</nav>
+		</details>
+		<ThemePicker />
+	</div>
+</header>
+
+<script>
+	const desktopNavigation = window.matchMedia('(min-width: 48rem)');
+
+	document.querySelectorAll<HTMLDetailsElement>('[data-mobile-navigation]').forEach((navigation) => {
+		const summary = navigation.querySelector('summary');
+
+		if (!(summary instanceof HTMLElement)) {
+			return;
+		}
+
+		const closeNavigation = (restoreFocus = false) => {
+			if (!navigation.open) {
+				return;
+			}
+
+			navigation.open = false;
+
+			if (restoreFocus) {
+				summary.focus();
+			}
+		};
+
+		navigation.addEventListener('toggle', () => {
+			summary.setAttribute('aria-label', navigation.open ? '关闭主导航' : '打开主导航');
+		});
+
+		navigation.addEventListener('keydown', (event) => {
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				closeNavigation(true);
+			}
+		});
+
+		navigation.querySelectorAll('a').forEach((link) => {
+			link.addEventListener('click', () => closeNavigation());
+		});
+
+		document.addEventListener('pointerdown', (event) => {
+			if (event.target instanceof Node && !navigation.contains(event.target)) {
+				closeNavigation();
+			}
+		});
+
+		desktopNavigation.addEventListener('change', ({ matches }) => {
+			if (matches) {
+				closeNavigation();
+			}
+		});
+	});
+</script>
+
+<style>
+	.site-header {
+		position: relative;
+		z-index: 20;
+		border-block-end: 1px solid var(--color-border);
+	}
+
+	.site-header__inner {
+		display: grid;
+		position: relative;
+		width: min(calc(100% - (2 * var(--page-gutter))), var(--content-max));
+		min-height: 4.5rem;
+		margin-inline: auto;
+		grid-template-columns: auto 1fr auto;
+		align-items: center;
+		gap: var(--space-3);
+	}
+
+	.site-header__brand {
+		color: var(--color-text);
+		font-family: var(--font-serif);
+		font-size: 1.35rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-decoration: none;
+	}
+
+	.site-header__brand:hover {
+		color: var(--color-accent);
+	}
+
+	.desktop-navigation {
+		display: none;
+	}
+
+	.mobile-navigation {
+		position: relative;
+		justify-self: end;
+	}
+
+	.mobile-navigation__summary {
+		padding: var(--space-2) var(--space-3);
+		border: 1px solid var(--color-control-border);
+		border-radius: var(--radius-small);
+		color: var(--color-text);
+		cursor: pointer;
+		font-size: 0.875rem;
+		line-height: 1.25;
+		list-style: none;
+	}
+
+	.mobile-navigation__summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.mobile-navigation__summary:hover,
+	.mobile-navigation[open] .mobile-navigation__summary {
+		background: var(--color-accent);
+		color: var(--color-on-accent);
+	}
+
+	.mobile-navigation__panel {
+		position: absolute;
+		inset-block-start: calc(100% + var(--space-2));
+		inset-inline-end: 0;
+		width: max-content;
+		min-width: 10rem;
+		padding: var(--space-2);
+		border: 1px solid var(--color-control-border);
+		border-radius: var(--radius-medium);
+		background: var(--color-background);
+		box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.12);
+	}
+
+	.site-navigation ul {
+		display: grid;
+		margin: 0;
+		padding: 0;
+		gap: var(--space-1);
+		list-style: none;
+	}
+
+	.site-navigation a {
+		display: block;
+		padding: var(--space-2) var(--space-3);
+		border-radius: var(--radius-small);
+		color: var(--color-text);
+		font-size: 0.9375rem;
+		text-decoration: none;
+	}
+
+	.site-navigation a:hover,
+	.site-navigation a.is-current {
+		background: var(--color-accent);
+		color: var(--color-on-accent);
+	}
+
+	@media (min-width: 48rem) {
+		.site-header__inner {
+			gap: var(--space-6);
+		}
+
+		.desktop-navigation {
+			display: block;
+			justify-self: start;
+		}
+
+		.mobile-navigation {
+			display: none;
+		}
+
+		.site-navigation ul {
+			display: flex;
+			align-items: center;
+			gap: var(--space-1);
+		}
+	}
+</style>

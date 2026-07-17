@@ -1,0 +1,211 @@
+<details class="theme-picker" data-theme-picker>
+	<summary class="theme-picker__summary" role="button">
+		主题：<span data-theme-label>跟随系统</span>
+	</summary>
+	<form class="theme-picker__panel">
+		<fieldset>
+			<legend class="visually-hidden">选择颜色主题</legend>
+			<label>
+				<input type="radio" name="theme" value="system" checked />
+				<span>跟随系统</span>
+			</label>
+			<label>
+				<input type="radio" name="theme" value="light" />
+				<span>浅色</span>
+			</label>
+			<label>
+				<input type="radio" name="theme" value="dark" />
+				<span>深色</span>
+			</label>
+		</fieldset>
+	</form>
+	<p class="visually-hidden" aria-live="polite" data-theme-status></p>
+</details>
+<noscript><span class="theme-fallback">主题：跟随系统</span></noscript>
+
+<script>
+	type ThemePreference = 'system' | 'light' | 'dark';
+
+	const storageKey = 'pangzhu-theme';
+	const themeLabels: Record<ThemePreference, string> = {
+		system: '跟随系统',
+		light: '浅色',
+		dark: '深色',
+	};
+
+	const isThemePreference = (value: string | null): value is ThemePreference =>
+		value === 'system' || value === 'light' || value === 'dark';
+
+	const updatePickers = (preference: ThemePreference, announce = false) => {
+		document.querySelectorAll<HTMLDetailsElement>('[data-theme-picker]').forEach((picker) => {
+			const label = picker.querySelector('[data-theme-label]');
+			const status = picker.querySelector('[data-theme-status]');
+			const input = picker.querySelector<HTMLInputElement>(`input[value="${preference}"]`);
+
+			if (label) {
+				label.textContent = themeLabels[preference];
+			}
+
+			if (input) {
+				input.checked = true;
+			}
+
+			if (announce && status) {
+				status.textContent = `已切换为${themeLabels[preference]}主题`;
+			}
+		});
+	};
+
+	const applyTheme = (preference: ThemePreference, persist = false, announce = false) => {
+		document.documentElement.dataset.theme = preference;
+
+		if (persist) {
+			try {
+				window.localStorage.setItem(storageKey, preference);
+			} catch {
+				// 存储不可用时仍允许在当前页面切换主题。
+			}
+		}
+
+		updatePickers(preference, announce);
+	};
+
+	const initialPreference = document.documentElement.dataset.theme ?? null;
+	applyTheme(isThemePreference(initialPreference) ? initialPreference : 'system');
+
+	document.querySelectorAll<HTMLDetailsElement>('[data-theme-picker]').forEach((picker) => {
+		const summary = picker.querySelector('summary');
+
+		picker.addEventListener('change', (event) => {
+			const input = event.target;
+
+			if (!(input instanceof HTMLInputElement) || !isThemePreference(input.value)) {
+				return;
+			}
+
+			applyTheme(input.value, true, true);
+			picker.open = false;
+
+			if (summary instanceof HTMLElement) {
+				summary.focus();
+			}
+		});
+
+		picker.addEventListener('keydown', (event) => {
+			if (event.key === 'Escape' && picker.open) {
+				event.preventDefault();
+				picker.open = false;
+
+				if (summary instanceof HTMLElement) {
+					summary.focus();
+				}
+			}
+		});
+
+		document.addEventListener('pointerdown', (event) => {
+			if (event.target instanceof Node && !picker.contains(event.target)) {
+				picker.open = false;
+			}
+		});
+	});
+
+	window.addEventListener('storage', (event) => {
+		if (event.key === storageKey) {
+			applyTheme(isThemePreference(event.newValue) ? event.newValue : 'system');
+		}
+	});
+</script>
+
+<style>
+	.theme-picker {
+		display: none;
+		position: relative;
+		justify-self: end;
+	}
+
+	:global(.js) .theme-picker {
+		display: block;
+	}
+
+	.theme-picker__summary,
+	.theme-fallback {
+		padding: var(--space-2) var(--space-3);
+		border: 1px solid var(--color-control-border);
+		border-radius: var(--radius-small);
+		color: var(--color-text);
+		font-size: 0.875rem;
+		line-height: 1.25;
+		white-space: nowrap;
+	}
+
+	.theme-picker__summary {
+		cursor: pointer;
+		display: list-item;
+		list-style: none;
+	}
+
+	.theme-picker__summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.theme-picker__summary:hover,
+	.theme-picker[open] .theme-picker__summary {
+		background: var(--color-accent);
+		color: var(--color-on-accent);
+	}
+
+	.theme-picker__panel {
+		position: absolute;
+		z-index: 30;
+		inset-block-start: calc(100% + var(--space-2));
+		inset-inline-end: 0;
+		width: 11rem;
+		padding: var(--space-2);
+		border: 1px solid var(--color-control-border);
+		border-radius: var(--radius-medium);
+		background: var(--color-background);
+		box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.12);
+	}
+
+	.theme-picker fieldset {
+		display: grid;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		gap: var(--space-1);
+	}
+
+	.theme-picker label {
+		display: flex;
+		padding: var(--space-2) var(--space-3);
+		border-radius: var(--radius-small);
+		align-items: center;
+		gap: var(--space-2);
+		color: var(--color-text);
+		cursor: pointer;
+		font-size: 0.9375rem;
+	}
+
+	.theme-picker label:hover,
+	.theme-picker label:has(input:checked) {
+		background: var(--color-accent);
+		color: var(--color-on-accent);
+	}
+
+	.theme-picker input {
+		margin: 0;
+		accent-color: var(--color-accent);
+	}
+
+	.theme-fallback {
+		display: block;
+		justify-self: end;
+	}
+
+	@media (max-width: 24rem) {
+		.theme-picker__summary,
+		.theme-fallback {
+			padding-inline: var(--space-2);
+		}
+	}
+</style>

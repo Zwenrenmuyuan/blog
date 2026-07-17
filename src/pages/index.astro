@@ -1,20 +1,96 @@
 ---
+import PostCard from '../components/PostCard.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getPostBySlug } from '../lib/posts';
 import { siteConfig } from '../site.config';
+
+const welcomePost = await getPostBySlug('welcome', { includeDrafts: false });
 ---
 
-<!doctype html>
-<html lang={siteConfig.locale}>
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<meta name="description" content={siteConfig.description} />
-		<title>{siteConfig.title}</title>
-	</head>
-	<body>
-		<main>
-			<h1>{siteConfig.title}</h1>
-			<p>{siteConfig.tagline}</p>
-		</main>
-	</body>
-</html>
+<BaseLayout title={siteConfig.title} description={siteConfig.description}>
+	<section class="publication-intro" aria-labelledby="publication-title">
+		<p class="publication-intro__eyebrow">个人刊物 · 技术 / 生活 / 阅读</p>
+		<h1 id="publication-title">{siteConfig.title}</h1>
+		<p class="publication-intro__tagline">{siteConfig.tagline}</p>
+		<p class="publication-intro__description">{siteConfig.description}</p>
+	</section>
+
+	{welcomePost && (
+		<section class="starting-point" aria-labelledby="starting-point-title">
+			<header class="starting-point__header">
+				<p>第 01 期</p>
+				<h2 id="starting-point-title">从这里开始</h2>
+			</header>
+			<PostCard post={welcomePost} headingLevel={3} variant="featured" />
+		</section>
+	)}
+</BaseLayout>
+
+<style>
+	.publication-intro {
+		display: grid;
+		max-width: 52rem;
+		gap: var(--space-4);
+	}
+
+	.publication-intro__eyebrow,
+	.starting-point__header p {
+		margin: 0;
+		color: var(--color-accent);
+		font-size: 0.8125rem;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+	}
+
+	.publication-intro h1 {
+		margin: 0;
+		font-family: var(--font-serif);
+		font-size: clamp(2.75rem, 8vw, 3.75rem);
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		line-height: 1;
+	}
+
+	.publication-intro__tagline {
+		max-width: 40rem;
+		margin: 0;
+		font-family: var(--font-serif);
+		font-size: clamp(1.4rem, 3vw, 2.1rem);
+		line-height: 1.45;
+	}
+
+	.publication-intro__description {
+		max-width: 42rem;
+		margin: 0;
+		color: var(--color-muted);
+	}
+
+	.starting-point {
+		display: grid;
+		margin-block-start: clamp(var(--space-8), 12vw, var(--space-9));
+		gap: var(--space-5);
+	}
+
+	.starting-point__header {
+		display: flex;
+		align-items: end;
+		justify-content: space-between;
+		gap: var(--space-4);
+	}
+
+	.starting-point__header h2 {
+		margin: 0;
+		font-family: var(--font-serif);
+		font-size: clamp(1.5rem, 3vw, 2.25rem);
+		line-height: 1.25;
+	}
+
+	@media (max-width: 32rem) {
+		.starting-point__header {
+			align-items: start;
+			flex-direction: column;
+			gap: var(--space-1);
+		}
+	}
+</style>

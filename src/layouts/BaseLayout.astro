@@ -1,0 +1,63 @@
+---
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import { primaryNavigation } from '../data/navigation';
+import { siteConfig } from '../site.config';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  mainClass?: string;
+}
+
+const { title, description, mainClass } = Astro.props;
+const currentYear = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  timeZone: siteConfig.timezone,
+}).format(new Date());
+---
+
+<!doctype html>
+<html lang={siteConfig.locale} data-theme="system">
+	<head>
+		<meta charset="utf-8" />
+		<script is:inline>
+			(() => {
+				const root = document.documentElement;
+				const storageKey = 'pangzhu-theme';
+				const preferences = ['system', 'light', 'dark'];
+
+				root.classList.add('js');
+
+				try {
+					const storedPreference = window.localStorage.getItem(storageKey);
+
+					if (storedPreference && preferences.includes(storedPreference)) {
+						root.dataset.theme = storedPreference;
+					} else {
+						root.dataset.theme = 'system';
+
+						if (storedPreference !== null) {
+							window.localStorage.removeItem(storageKey);
+						}
+					}
+				} catch {
+					root.dataset.theme = 'system';
+				}
+			})();
+		</script>
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="description" content={description} />
+		<title>{title}</title>
+	</head>
+	<body>
+		<a class="skip-link" href="#main-content">跳到正文</a>
+		<SiteHeader currentPath={Astro.url.pathname} items={primaryNavigation} />
+		<main id="main-content" class:list={['site-main', mainClass]} tabindex="-1">
+			<slot />
+		</main>
+		<SiteFooter year={currentYear} />
+	</body>
+</html>
