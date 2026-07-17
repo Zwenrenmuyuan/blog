@@ -9,6 +9,17 @@ test('欢迎文章显示阅读时间、目录和标题永久链接', async ({ pa
   await expect(page.locator('[data-mobile-toc]')).toBeHidden();
   await expect(page.locator('.article-toc--desktop a')).toHaveCount(3);
 
+  const alignment = await page.evaluate(() => {
+    const header = document.querySelector<HTMLElement>('.post__header');
+    const content = document.querySelector<HTMLElement>('.post__content');
+
+    return {
+      headerLeft: header?.getBoundingClientRect().left ?? -1,
+      contentLeft: content?.getBoundingClientRect().left ?? -2,
+    };
+  });
+  expect(Math.abs(alignment.headerLeft - alignment.contentLeft)).toBeLessThan(1);
+
   const tocLink = page.locator('.article-toc--desktop a').first();
   const href = await tocLink.getAttribute('href');
   await tocLink.click();

@@ -80,42 +80,49 @@ const seoImage = post.data.cover && post.data.coverAlt
 	}}
 >
 	<article class="post" data-article>
-		<header class="post__header">
-			{post.data.draft && <p class="post__draft" role="status">草稿预览</p>}
-			<p class="post__eyebrow">旁注 · 文章</p>
-			<h1
-				data-pagefind-body={post.data.draft ? undefined : true}
-				data-pagefind-meta={post.data.draft ? undefined : 'title'}
-			>
-				{post.data.title}
-			</h1>
-			<p
-				class="post__description"
-				data-pagefind-body={post.data.draft ? undefined : true}
-			>
-				{post.data.description}
-			</p>
-			<div class="post__meta">
-				<p>
-					<span>发布于 </span>
-					<time datetime={post.data.publishedAt.toISOString()}>
-						{formatLongDate(post.data.publishedAt)}
-					</time>
+		<div
+			class:list={['post__header-layout', { 'post__header-layout--with-toc': hasTableOfContents }]}
+		>
+			<header class="post__header">
+				{post.data.draft && <p class="post__draft" role="status">草稿预览</p>}
+				<p class="post__eyebrow">旁注 · 文章</p>
+				<h1
+					data-pagefind-body={post.data.draft ? undefined : true}
+					data-pagefind-meta={post.data.draft ? undefined : 'title'}
+				>
+					{post.data.title}
+				</h1>
+				<p
+					class="post__description"
+					data-pagefind-body={post.data.draft ? undefined : true}
+				>
+					{post.data.description}
 				</p>
-				{post.data.updatedAt && (
+				<div class="post__meta">
 					<p>
-						<span>更新于 </span>
-						<time datetime={post.data.updatedAt.toISOString()}>
-							{formatLongDate(post.data.updatedAt)}
+						<span>发布于 </span>
+						<time datetime={post.data.publishedAt.toISOString()}>
+							{formatLongDate(post.data.publishedAt)}
 						</time>
 					</p>
-				)}
-				<p data-reading-time>约 {readingMinutes} 分钟阅读</p>
-				<TagList tagIds={post.data.tags} linked searchable={!post.data.draft} />
-			</div>
-		</header>
+					{post.data.updatedAt && (
+						<p>
+							<span>更新于 </span>
+							<time datetime={post.data.updatedAt.toISOString()}>
+								{formatLongDate(post.data.updatedAt)}
+							</time>
+						</p>
+					)}
+					<p data-reading-time>约 {readingMinutes} 分钟阅读</p>
+					<TagList tagIds={post.data.tags} linked searchable={!post.data.draft} />
+				</div>
+			</header>
+		</div>
 		{post.data.cover && post.data.coverAlt && (
-			<figure class="post__cover" data-post-cover>
+			<figure
+				class:list={['post__cover', { 'post__cover--with-toc': hasTableOfContents }]}
+				data-post-cover
+			>
 				<Image
 					src={post.data.cover}
 					alt={post.data.coverAlt}
@@ -154,10 +161,13 @@ const seoImage = post.data.cover && post.data.coverAlt
 		width: 100%;
 	}
 
-	.post__header {
-		display: grid;
+	.post__header-layout {
 		width: min(100%, var(--reading-max));
 		margin-inline: auto;
+	}
+
+	.post__header {
+		display: grid;
 		padding-block-end: var(--space-7);
 		border-block-end: 1px solid var(--color-border);
 		gap: var(--space-4);
@@ -244,11 +254,18 @@ const seoImage = post.data.cover && post.data.coverAlt
 	}
 
 	@media (min-width: 64rem) {
+		.post__header-layout--with-toc,
+		.post__cover--with-toc,
 		.post__reading--with-toc {
 			display: grid;
 			width: min(100%, 64rem);
 			grid-template-columns: minmax(0, var(--reading-max)) minmax(14rem, 16rem);
-			gap: var(--space-7);
+			column-gap: var(--space-7);
+		}
+
+		.post__header-layout--with-toc > .post__header,
+		.post__cover--with-toc > :global(img) {
+			grid-column: 1;
 		}
 
 		.post__reading--with-toc > :global(.article-toc--desktop) {
