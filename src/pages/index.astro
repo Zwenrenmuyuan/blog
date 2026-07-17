@@ -1,0 +1,20 @@
+---
+import { siteConfig } from '../site.config';
+---
+
+<!doctype html>
+<html lang={siteConfig.locale}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="description" content={siteConfig.description} />
+		<title>{siteConfig.title}</title>
+	</head>
+	<body>
+		<main>
+			<h1>{siteConfig.title}</h1>
+			<p>{siteConfig.tagline}</p>
+		</main>
+	</body>
+</html>

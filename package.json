@@ -1,0 +1,49 @@
+{
+  "name": "pangzhu-blog",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=26.3.0 <27",
+    "npm": ">=11.16.0 <12"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "26.3.0",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "npm",
+      "version": "11.16.0",
+      "onFail": "error"
+    }
+  },
+  "packageManager": "npm@11.16.0",
+  "scripts": {
+    "dev": "astro dev",
+    "check": "astro check",
+    "build": "npm run check && astro build",
+    "postbuild": "pagefind --site dist",
+    "preview": "astro preview",
+    "test:e2e": "npm run build && playwright test"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^7.0.3",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.3",
+    "astro": "^7.1.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.61.1",
+    "pagefind": "^1.5.2",
+    "typescript": "^6.0.3"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "fsevents@2.3.3": true,
+    "fsevents@2.3.2": true
+  }
+}
