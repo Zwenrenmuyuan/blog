@@ -40,10 +40,10 @@ npx playwright install chromium
 
 ## 环境变量
 
-本地开发不需要创建 `.env`，会自动使用 `http://localhost:4321/`。部署时设置：
+本地开发不需要创建 `.env`，会自动使用 `http://localhost:4321/`。生产部署使用：
 
 ```sh
-SITE_URL=https://example.com/
+SITE_URL=https://blog.zwenrenmuyuanzyj.me/
 ```
 
 `SITE_URL` 必须是合法的 HTTP 或 HTTPS 站点根地址，不能包含凭据、子路径、查询参数或片段。canonical、分享图片、RSS、sitemap 和 `robots.txt` 都从这里生成，参考 `.env.example`。
@@ -55,4 +55,17 @@ SITE_URL=https://example.com/
 - 生产全文搜索：<http://localhost:4321/search/>
 - RSS 订阅：<http://localhost:4321/rss.xml>
 
-Pagefind 索引在生产构建结束后生成，因此开发服务器中的搜索页只显示说明；使用 `npm run build` 和 `npm run preview` 验证真实搜索。搜索、RSS、sitemap 和结构化数据只包含公开文章，草稿始终排除。正式域名和部署仍留在后续里程碑完成。
+Pagefind 索引在生产构建结束后生成，因此开发服务器中的搜索页只显示说明；使用 `npm run build` 和 `npm run preview` 验证真实搜索。搜索、RSS、sitemap 和结构化数据只包含公开文章，草稿始终排除。
+
+## 部署
+
+站点通过 GitHub Actions 发布到 GitHub Pages，生产地址为 <https://blog.zwenrenmuyuanzyj.me/>。
+
+- 拉取请求只运行质量验证，不发布站点。
+- 推送到 `main` 后依次运行类型检查、单元测试、开发内容测试和生产端到端测试。
+- 全部检查通过后，Actions 使用正式域名重新构建，确保 canonical、分享信息、RSS、sitemap 和 robots 均使用生产地址。
+- GitHub Pages 只接收 `dist` 静态产物，仓库不提交构建目录。
+
+首次启用时，在仓库的 `Settings → Pages` 中将发布来源设为 `GitHub Actions`，并把自定义域名设置为 `blog.zwenrenmuyuanzyj.me`。DNS 验证成功后启用 `Enforce HTTPS`。
+
+日常发布只需将文章变更推送到 `main`。需要回滚时，优先回退对应 Git 提交并推送；GitHub Actions 会重新发布回退后的版本，也可以在仓库的部署记录中重新运行某次成功工作流。
