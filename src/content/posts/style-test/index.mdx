@@ -1,0 +1,55 @@
+---
+title: Markdown 与 MDX 样式测试
+description: 用于开发环境检查长文章中的常见 Markdown 结构和少量 MDX 内容。
+publishedAt: 2026-07-17T10:00:00+08:00
+tags:
+  - technology
+draft: true
+featured: false
+---
+
+这是一篇只在开发环境出现的草稿，用来检查未来的正文样式。它包含**强调文字**、*斜体文字*、~~删除内容~~、`行内代码`，以及一个[普通链接](https://example.com/)。
+
+## 中英文混排与长内容
+
+Astro、TypeScript 和 Markdown 会出现在中文段落中。这里也放置一个较长的链接，检查窄屏下是否会溢出：https://example.com/a/very/long/path/for/testing/how-article-content-wraps-on-small-screens
+
+> 好的正文样式不应该依赖文章恰好很短，也不应该要求作者绕开常用的 Markdown 语法。
+
+### 列表
+
+- 无序列表第一项
+- 无序列表第二项
+  - 嵌套列表内容
+
+1. 先建立内容模型
+2. 再生成静态页面
+3. 最后补充阅读体验
+
+### 代码
+
+```ts
+interface Note {
+  title: string;
+  published: boolean;
+}
+
+const note: Note = {
+  title: '旁注',
+  published: false,
+};
+```
+
+### 表格
+
+| 内容 | 用途 |
+| --- | --- |
+| Markdown | 日常写作 |
+| MDX | 少量特殊内容 |
+| Astro | 生成静态页面 |
+
+---
+
+<aside aria-label="MDX 示例">
+  这是一个直接写在 MDX 中的语义化内容块，用来证明 MDX 渲染链路可以工作。
+</aside>

@@ -1,0 +1,59 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+
+import { getTag } from '../../data/tags';
+import { getPosts } from '../../lib/posts';
+import { siteConfig } from '../../site.config';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+}
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const postTags = post.data.tags.map((tagId) => getTag(tagId));
+const dateFormatter = new Intl.DateTimeFormat(siteConfig.locale, {
+  dateStyle: 'long',
+  timeZone: siteConfig.timezone,
+});
+---
+
+<!doctype html>
+<html lang={siteConfig.locale}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="description" content={post.data.description} />
+		<title>{post.data.title} | {siteConfig.title}</title>
+	</head>
+	<body>
+		<main>
+			<article>
+				{post.data.draft && <p role="status">草稿预览</p>}
+				<header>
+					<h1>{post.data.title}</h1>
+					<p>{post.data.description}</p>
+					<p>
+						<time datetime={post.data.publishedAt.toISOString()}>
+							{dateFormatter.format(post.data.publishedAt)}
+						</time>
+					</p>
+					<ul aria-label="文章标签">
+						{postTags.map((tag) => <li>{tag.label}</li>)}
+					</ul>
+				</header>
+				<Content />
+			</article>
+		</main>
+	</body>
+</html>
