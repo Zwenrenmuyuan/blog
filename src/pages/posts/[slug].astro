@@ -1,34 +1,65 @@
 ---
-import { render, type CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
 
+import AccessibleArticleInput from '../../components/AccessibleArticleInput.astro';
+import ArticleEnhancements from '../../components/ArticleEnhancements.astro';
+import ArticleToc from '../../components/ArticleToc.astro';
+import PostNavigation from '../../components/PostNavigation.astro';
+import RelatedPosts from '../../components/RelatedPosts.astro';
 import TagList from '../../components/TagList.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { formatLongDate } from '../../lib/date';
-import { getPosts } from '../../lib/posts';
+import { getPosts, type Post } from '../../lib/posts';
+import {
+  buildTableOfContents,
+  calculateReadingMinutes,
+  getPostNeighbors,
+  selectRelatedPosts,
+  type PostNeighbors,
+} from '../../lib/reading';
 import { siteConfig } from '../../site.config';
 
 interface Props {
-  post: CollectionEntry<'posts'>;
+  post: Post;
+  neighbors: PostNeighbors<Post>;
+  relatedPosts: Post[];
 }
 
 export async function getStaticPaths() {
   const posts = await getPosts();
 
-  return posts.map((post) => ({
-    params: { slug: post.id },
-    props: { post },
-  }));
+  return posts.map((post) => {
+    const neighbors = getPostNeighbors(posts, post.id);
+    const relatedPosts = selectRelatedPosts(posts, post, {
+      limit: 3,
+      excludeIds: [neighbors.previous?.id, neighbors.next?.id].filter(
+        (id): id is string => id !== undefined,
+      ),
+    });
+
+    return {
+      params: { slug: post.id },
+      props: { post, neighbors, relatedPosts },
+    };
+  });
 }
 
-const { post } = Astro.props;
-const { Content } = await render(post);
+const { post, neighbors, relatedPosts } = Astro.props;
+const { Content, headings } = await render(post);
+const tocHeadings = headings.filter(
+  (heading) => (heading.depth === 2 || heading.depth === 3) && heading.slug !== 'footnote-label',
+);
+const hasTableOfContents = tocHeadings.length >= 2;
+const tableOfContents = hasTableOfContents ? buildTableOfContents(tocHeadings) : [];
+const readingMinutes = calculateReadingMinutes(post.body ?? '');
 ---
 
 <BaseLayout
 	title={`${post.data.title} | ${siteConfig.title}`}
 	description={post.data.description}
 >
-	<article class="post">
+	<article class="post" data-article>
 		<header class="post__header">
 			{post.data.draft && <p class="post__draft" role="status">草稿预览</p>}
 			<p class="post__eyebrow">旁注 · 文章</p>
@@ -36,7 +67,7 @@ const { Content } = await render(post);
 			<p class="post__description">{post.data.description}</p>
 			<div class="post__meta">
 				<p>
-					<span class="visually-hidden">发布于</span>
+					<span>发布于 </span>
 					<time datetime={post.data.publishedAt.toISOString()}>
 						{formatLongDate(post.data.publishedAt)}
 					</time>
@@ -49,26 +80,50 @@ const { Content } = await render(post);
 						</time>
 					</p>
 				)}
+				<p data-reading-time>约 {readingMinutes} 分钟阅读</p>
 				<TagList tagIds={post.data.tags} linked />
 			</div>
 		</header>
-		<div class="prose">
-			<Content />
+		{post.data.cover && post.data.coverAlt && (
+			<figure class="post__cover" data-post-cover>
+				<Image
+					src={post.data.cover}
+					alt={post.data.coverAlt}
+					loading="eager"
+					decoding="async"
+					fetchpriority="high"
+					sizes="(max-width: 45rem) 100vw, 45rem"
+				/>
+			</figure>
+		)}
+		<div
+			class:list={['post__reading', { 'post__reading--with-toc': hasTableOfContents }]}
+		>
+			{hasTableOfContents && <ArticleToc items={tableOfContents} />}
+			<div class="post__content">
+				<div class="prose" data-article-body>
+					<Content components={{ input: AccessibleArticleInput }} />
+				</div>
+				<ArticleEnhancements />
+			</div>
 		</div>
 		<footer class="post__footer">
-			<a href="/posts/">返回全部文章</a>
+			<PostNavigation neighbors={neighbors} />
+			<RelatedPosts posts={relatedPosts} />
+			<p class="post__back-link"><a href="/posts/">返回全部文章</a></p>
 		</footer>
 	</article>
 </BaseLayout>
 
 <style>
 	.post {
-		width: min(100%, var(--reading-max));
-		margin-inline: auto;
+		width: 100%;
 	}
 
 	.post__header {
 		display: grid;
+		width: min(100%, var(--reading-max));
+		margin-inline: auto;
 		padding-block-end: var(--space-7);
 		border-block-end: 1px solid var(--color-border);
 		gap: var(--space-4);
@@ -108,7 +163,7 @@ const { Content } = await render(post);
 	.post__meta {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
+		flex-wrap: wrap;
 		gap: var(--space-4);
 	}
 
@@ -119,14 +174,58 @@ const { Content } = await render(post);
 		white-space: nowrap;
 	}
 
-	.post > .prose {
-		margin-block-start: var(--space-7);
+	.post__cover {
+		width: min(100%, var(--reading-max));
+		margin: var(--space-7) auto 0;
+	}
+
+	.post__cover :global(img) {
+		display: block;
+		width: 100%;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-medium);
+	}
+
+	.post__reading {
+		width: min(100%, var(--reading-max));
+		margin: var(--space-7) auto 0;
+	}
+
+	.post__content {
+		min-width: 0;
 	}
 
 	.post__footer {
+		display: grid;
+		width: min(100%, 64rem);
+		margin-inline: auto;
 		margin-block-start: var(--space-7);
 		padding-block-start: var(--space-5);
 		border-block-start: 1px solid var(--color-border);
+		gap: var(--space-7);
+	}
+
+	.post__back-link {
+		margin: 0;
+	}
+
+	@media (min-width: 64rem) {
+		.post__reading--with-toc {
+			display: grid;
+			width: min(100%, 64rem);
+			grid-template-columns: minmax(0, var(--reading-max)) minmax(14rem, 16rem);
+			gap: var(--space-7);
+		}
+
+		.post__reading--with-toc > :global(.article-toc--desktop) {
+			grid-column: 2;
+			grid-row: 1;
+		}
+
+		.post__reading--with-toc > .post__content {
+			grid-column: 1;
+			grid-row: 1;
+		}
 	}
 
 	@media (max-width: 36rem) {

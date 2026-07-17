@@ -1,0 +1,152 @@
+---
+import type { TocItem } from '../lib/reading';
+
+interface Props {
+  items: TocItem[];
+}
+
+const { items } = Astro.props;
+const itemCount = items.reduce((total, item) => total + 1 + item.children.length, 0);
+---
+
+<details class="article-toc article-toc--mobile" data-mobile-toc>
+	<summary>
+		<span>文章目录</span>
+		<small>{itemCount} 项</small>
+	</summary>
+	<nav aria-label="文章目录">
+		<ul>
+			{items.map((item) => (
+				<li>
+					<a href={`#${item.slug}`}>{item.text}</a>
+					{item.children.length > 0 && (
+						<ul>
+							{item.children.map((child) => (
+								<li><a href={`#${child.slug}`}>{child.text}</a></li>
+							))}
+						</ul>
+					)}
+				</li>
+			))}
+		</ul>
+	</nav>
+</details>
+
+<aside class="article-toc article-toc--desktop">
+	<div class="article-toc__sticky">
+		<p>文章目录</p>
+		<nav aria-label="文章目录">
+			<ul>
+				{items.map((item) => (
+					<li>
+						<a href={`#${item.slug}`}>{item.text}</a>
+						{item.children.length > 0 && (
+							<ul>
+								{item.children.map((child) => (
+									<li><a href={`#${child.slug}`}>{child.text}</a></li>
+								))}
+							</ul>
+						)}
+					</li>
+				))}
+			</ul>
+		</nav>
+	</div>
+</aside>
+
+<style>
+	.article-toc {
+		color: var(--color-muted);
+		font-size: 0.875rem;
+	}
+
+	.article-toc--mobile {
+		margin-block-end: var(--space-6);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-medium);
+	}
+
+	.article-toc--mobile summary {
+		display: flex;
+		min-height: 2.75rem;
+		padding: var(--space-3) var(--space-4);
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-3);
+		color: var(--color-text);
+		cursor: pointer;
+		font-family: var(--font-serif);
+		font-weight: 700;
+	}
+
+	.article-toc--mobile summary small {
+		color: var(--color-muted);
+		font-family: var(--font-sans);
+		font-weight: 400;
+	}
+
+	.article-toc--mobile nav {
+		padding: 0 var(--space-4) var(--space-4);
+		border-block-start: 1px solid var(--color-border);
+	}
+
+	.article-toc--desktop {
+		display: none;
+		min-width: 0;
+	}
+
+	.article-toc__sticky {
+		position: sticky;
+		inset-block-start: var(--space-6);
+		padding-inline-start: var(--space-5);
+		border-inline-start: 1px solid var(--color-border);
+	}
+
+	.article-toc__sticky > p {
+		margin: 0 0 var(--space-3);
+		color: var(--color-text);
+		font-family: var(--font-serif);
+		font-weight: 700;
+	}
+
+	.article-toc ul {
+		display: grid;
+		margin: 0;
+		padding: 0;
+		gap: var(--space-2);
+		list-style: none;
+	}
+
+	.article-toc nav > ul {
+		margin-block-start: var(--space-3);
+	}
+
+	.article-toc li > ul {
+		margin-block-start: var(--space-2);
+		padding-inline-start: var(--space-4);
+		border-inline-start: 1px solid var(--color-border);
+	}
+
+	.article-toc a {
+		display: inline-block;
+		max-width: 100%;
+		color: var(--color-muted);
+		line-height: 1.45;
+		text-decoration: none;
+	}
+
+	.article-toc a:hover {
+		color: var(--color-accent);
+		text-decoration: underline;
+	}
+
+	@media (min-width: 64rem) {
+		.article-toc--mobile {
+			display: none;
+		}
+
+		.article-toc--desktop {
+			display: block;
+		}
+	}
+</style>

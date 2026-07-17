@@ -27,6 +27,7 @@
     "postbuild": "pagefind --site dist",
     "preview": "astro preview",
     "test:unit": "node --test tests/unit/*.test.ts",
+    "test:content": "playwright test --config playwright.content.config.ts",
     "test:e2e": "npm run build && playwright test"
   },
   "dependencies": {

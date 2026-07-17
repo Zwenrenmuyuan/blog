@@ -5,9 +5,14 @@ import { z } from 'astro/zod';
 import { tagIds } from './data/tags';
 import { getPostSlugFromEntryPath } from './lib/post-slug';
 
+const postPattern =
+  process.env.NODE_ENV === 'production'
+    ? ['**/*.(md|mdx)', '!style-test/**']
+    : '**/*.(md|mdx)';
+
 const posts = defineCollection({
   loader: glob({
-    pattern: '**/*.(md|mdx)',
+    pattern: postPattern,
     base: './src/content/posts',
     generateId: ({ entry }) => getPostSlugFromEntryPath(entry),
   }),

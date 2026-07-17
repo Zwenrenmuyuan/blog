@@ -1,0 +1,5 @@
+---
+const accessibleName = Astro.props['aria-label'] ?? '任务状态';
+---
+
+<input {...Astro.props} aria-label={accessibleName} />

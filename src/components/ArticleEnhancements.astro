@@ -1,0 +1,156 @@
+<script>
+	const articleBody = document.querySelector<HTMLElement>('[data-article-body]');
+
+	if (articleBody) {
+		articleBody
+			.querySelectorAll<HTMLElement>('h2[id]:not(.sr-only), h3[id]')
+			.forEach((heading) => {
+				if (heading.querySelector(':scope > .heading-anchor')) {
+					return;
+				}
+
+				const headingText = heading.textContent?.trim() ?? '';
+				const anchor = document.createElement('a');
+				anchor.className = 'heading-anchor';
+				anchor.href = `#${heading.id}`;
+				anchor.textContent = '#';
+				anchor.setAttribute('aria-label', `链接到“${headingText}”`);
+				heading.append(anchor);
+			});
+
+		articleBody.querySelectorAll<HTMLAnchorElement>('[data-footnote-backref]').forEach((anchor) => {
+			anchor.setAttribute('aria-label', '返回脚注引用');
+		});
+
+		articleBody.querySelectorAll<HTMLAnchorElement>('a[href]').forEach((anchor) => {
+			const href = anchor.getAttribute('href');
+
+			if (!href) {
+				return;
+			}
+
+			try {
+				const url = new URL(href, window.location.href);
+
+				if (
+					(url.protocol === 'http:' || url.protocol === 'https:') &&
+					url.origin !== window.location.origin
+				) {
+					anchor.target = '_blank';
+					anchor.rel = 'noopener noreferrer';
+				}
+			} catch {
+				// 无法解析的地址保持原样，继续使用浏览器默认行为。
+			}
+		});
+
+		articleBody.querySelectorAll<HTMLPreElement>('pre').forEach((pre) => {
+			const code = pre.querySelector(':scope > code');
+
+			if (!code || pre.parentElement?.classList.contains('code-block')) {
+				return;
+			}
+
+			const wrapper = document.createElement('div');
+			const toolbar = document.createElement('div');
+			const button = document.createElement('button');
+			const status = document.createElement('span');
+			let resetTimer: number | undefined;
+
+			wrapper.className = 'code-block';
+			toolbar.className = 'code-block__toolbar';
+			button.className = 'code-copy-button';
+			button.type = 'button';
+			button.textContent = '复制';
+			button.setAttribute('aria-label', '复制代码');
+			status.className = 'visually-hidden';
+			status.setAttribute('aria-live', 'polite');
+
+			pre.before(wrapper);
+			wrapper.append(toolbar, pre, status);
+			toolbar.append(button);
+
+			const report = (message: '已复制' | '复制失败') => {
+				button.textContent = message;
+				status.textContent = message;
+				window.clearTimeout(resetTimer);
+				resetTimer = window.setTimeout(() => {
+					button.textContent = '复制';
+					status.textContent = '';
+				}, 2000);
+			};
+
+			button.addEventListener('click', async () => {
+				try {
+					if (!navigator.clipboard?.writeText) {
+						throw new Error('Clipboard API unavailable');
+					}
+
+					await navigator.clipboard.writeText(code.textContent ?? '');
+					report('已复制');
+				} catch {
+					report('复制失败');
+				}
+			});
+		});
+	}
+</script>
+
+<style is:global>
+	.prose .heading-anchor {
+		margin-inline-start: var(--space-2);
+		color: var(--color-muted);
+		font-family: var(--font-sans);
+		font-size: 0.7em;
+		font-weight: 400;
+		text-decoration: none;
+		opacity: 0.55;
+	}
+
+	.prose .heading-anchor:hover,
+	.prose .heading-anchor:focus-visible {
+		color: var(--color-accent);
+		opacity: 1;
+	}
+
+	.prose .code-block {
+		position: relative;
+		max-width: 100%;
+		margin-block: var(--space-5);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-medium);
+		overflow: hidden;
+		background: var(--astro-code-background);
+	}
+
+	.prose .code-block__toolbar {
+		display: flex;
+		min-height: 2.5rem;
+		padding: var(--space-2);
+		border-block-end: 1px solid var(--color-border);
+		align-items: center;
+		justify-content: flex-end;
+	}
+
+	.prose .code-copy-button {
+		min-height: 1.875rem;
+		padding-inline: var(--space-3);
+		border: 1px solid var(--color-control-border);
+		border-radius: var(--radius-small);
+		background: transparent;
+		color: var(--color-text);
+		cursor: pointer;
+		font-size: 0.8125rem;
+	}
+
+	.prose .code-copy-button:hover {
+		border-color: var(--color-accent);
+		color: var(--color-accent);
+	}
+
+	.prose .code-block pre {
+		margin: 0;
+		border: 0;
+		border-radius: 0;
+	}
+</style>

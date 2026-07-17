@@ -1,0 +1,86 @@
+---
+import { formatLongDate } from '../lib/date';
+import { getPostPath, type Post } from '../lib/posts';
+import type { PostNeighbors } from '../lib/reading';
+
+interface Props {
+  neighbors: PostNeighbors<Post>;
+}
+
+const { neighbors } = Astro.props;
+const { previous, next } = neighbors;
+---
+
+{(previous || next) && (
+	<nav class="post-navigation" aria-label="相邻文章" data-post-navigation>
+		{previous && (
+			<a class="post-navigation__item" href={getPostPath(previous)} rel="prev">
+				<span>上一篇 · 较早</span>
+				<strong>{previous.data.title}</strong>
+				<time datetime={previous.data.publishedAt.toISOString()}>
+					{formatLongDate(previous.data.publishedAt)}
+				</time>
+			</a>
+		)}
+		{next && (
+			<a class="post-navigation__item post-navigation__item--next" href={getPostPath(next)} rel="next">
+				<span>下一篇 · 较新</span>
+				<strong>{next.data.title}</strong>
+				<time datetime={next.data.publishedAt.toISOString()}>
+					{formatLongDate(next.data.publishedAt)}
+				</time>
+			</a>
+		)}
+	</nav>
+)}
+
+<style>
+	.post-navigation {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--space-4);
+	}
+
+	.post-navigation__item {
+		display: grid;
+		min-width: 0;
+		padding: var(--space-4);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-medium);
+		gap: var(--space-2);
+		color: var(--color-text);
+		text-decoration: none;
+	}
+
+	.post-navigation__item--next {
+		grid-column: 2;
+		text-align: end;
+	}
+
+	.post-navigation__item:hover {
+		border-color: var(--color-accent);
+		color: var(--color-accent);
+	}
+
+	.post-navigation__item span,
+	.post-navigation__item time {
+		color: var(--color-muted);
+		font-size: 0.8125rem;
+	}
+
+	.post-navigation__item strong {
+		font-family: var(--font-serif);
+		line-height: 1.4;
+	}
+
+	@media (max-width: 36rem) {
+		.post-navigation {
+			grid-template-columns: 1fr;
+		}
+
+		.post-navigation__item--next {
+			grid-column: 1;
+			text-align: start;
+		}
+	}
+</style>

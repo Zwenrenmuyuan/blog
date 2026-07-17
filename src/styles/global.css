@@ -7,6 +7,17 @@
   --color-border: #d8d0c6;
   --color-control-border: #6e675f;
   --color-on-accent: #ffffff;
+  --astro-code-background: #eee9e1;
+  --astro-code-foreground: #1f1d1a;
+  --astro-code-token-constant: #7a5318;
+  --astro-code-token-string: #3f6b4f;
+  --astro-code-token-comment: #6e675f;
+  --astro-code-token-keyword: #8c3b2a;
+  --astro-code-token-parameter: #6c4e3d;
+  --astro-code-token-function: #5f4b8b;
+  --astro-code-token-string-expression: #3f6b4f;
+  --astro-code-token-punctuation: #1f1d1a;
+  --astro-code-token-link: #8c3b2a;
   --font-serif: ui-serif, "Songti SC", STSong, "Noto Serif CJK SC", serif;
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
     "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
@@ -38,6 +49,17 @@
   --color-border: #39332e;
   --color-control-border: #a99f94;
   --color-on-accent: #171513;
+  --astro-code-background: #201d1a;
+  --astro-code-foreground: #eae4da;
+  --astro-code-token-constant: #e0b36d;
+  --astro-code-token-string: #a9c78f;
+  --astro-code-token-comment: #a99f94;
+  --astro-code-token-keyword: #d68b74;
+  --astro-code-token-parameter: #d5b59a;
+  --astro-code-token-function: #c3a6e8;
+  --astro-code-token-string-expression: #a9c78f;
+  --astro-code-token-punctuation: #eae4da;
+  --astro-code-token-link: #d68b74;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -51,6 +73,17 @@
     --color-border: #39332e;
     --color-control-border: #a99f94;
     --color-on-accent: #171513;
+    --astro-code-background: #201d1a;
+    --astro-code-foreground: #eae4da;
+    --astro-code-token-constant: #e0b36d;
+    --astro-code-token-string: #a9c78f;
+    --astro-code-token-comment: #a99f94;
+    --astro-code-token-keyword: #d68b74;
+    --astro-code-token-parameter: #d5b59a;
+    --astro-code-token-function: #c3a6e8;
+    --astro-code-token-string-expression: #a9c78f;
+    --astro-code-token-punctuation: #eae4da;
+    --astro-code-token-link: #d68b74;
   }
 }
 
@@ -74,6 +107,7 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 1fr auto;
   background: var(--color-background);
   color: var(--color-text);
@@ -136,7 +170,8 @@ a:hover {
   translate: 0;
 }
 
-.visually-hidden {
+.visually-hidden,
+.sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -163,7 +198,9 @@ a:hover {
 
 .prose h2,
 .prose h3,
-.prose h4 {
+.prose h4,
+.prose h5,
+.prose h6 {
   margin-block: 2em 0.75em;
   color: var(--color-text);
   font-family: var(--font-serif);
@@ -179,6 +216,15 @@ a:hover {
   font-size: clamp(1.2rem, 2vw, 1.5rem);
 }
 
+.prose h4 {
+  font-size: 1.125rem;
+}
+
+.prose h5,
+.prose h6 {
+  font-size: 1rem;
+}
+
 .prose p,
 .prose ul,
 .prose ol,
@@ -189,6 +235,18 @@ a:hover {
   margin-block: var(--space-5);
 }
 
+.prose p {
+  text-wrap: pretty;
+}
+
+.prose strong {
+  color: var(--color-text);
+}
+
+.prose del {
+  color: var(--color-muted);
+}
+
 .prose ul,
 .prose ol {
   padding-inline-start: var(--space-5);
@@ -196,6 +254,22 @@ a:hover {
 
 .prose li + li {
   margin-block-start: var(--space-2);
+}
+
+.prose .contains-task-list {
+  padding-inline-start: 0;
+  list-style: none;
+}
+
+.prose .task-list-item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.prose .task-list-item input {
+  flex: 0 0 auto;
+  accent-color: var(--color-accent);
 }
 
 .prose blockquote {
@@ -217,11 +291,22 @@ a:hover {
 }
 
 .prose pre {
+  width: 100%;
   max-width: 100%;
   padding: var(--space-4);
   overflow-x: auto;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-medium);
+  background: var(--astro-code-background) !important;
+  color: var(--astro-code-foreground) !important;
+  tab-size: 2;
+}
+
+.prose pre code {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  line-height: 1.65;
 }
 
 .prose table {
@@ -247,6 +332,23 @@ a:hover {
   height: auto;
 }
 
+.prose img {
+  display: block;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+}
+
+.prose figure {
+  margin: var(--space-6) 0;
+}
+
+.prose figcaption {
+  margin-block-start: var(--space-2);
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
 .prose hr {
   margin-block: var(--space-7);
   border: 0;
@@ -257,6 +359,25 @@ a:hover {
   padding: var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-medium);
+}
+
+.prose .footnotes {
+  margin-block-start: var(--space-8);
+  padding-block-start: var(--space-5);
+  border-block-start: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.prose .footnotes h2 {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+}
+
+.prose [data-footnote-ref],
+.prose [data-footnote-backref] {
+  font-weight: 700;
+  text-decoration: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

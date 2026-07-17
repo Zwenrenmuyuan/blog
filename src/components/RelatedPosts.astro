@@ -1,0 +1,40 @@
+---
+import type { Post } from '../lib/posts';
+import PostCard from './PostCard.astro';
+
+interface Props {
+  posts: Post[];
+}
+
+const { posts } = Astro.props;
+---
+
+{posts.length > 0 && (
+	<section class="related-posts" aria-labelledby="related-posts-title" data-related-posts>
+		<h2 id="related-posts-title">相关文章</h2>
+		<div class="related-posts__grid">
+			{posts.map((post) => (
+				<PostCard post={post} headingLevel={3} linkTags />
+			))}
+		</div>
+	</section>
+)}
+
+<style>
+	.related-posts {
+		display: grid;
+		gap: var(--space-4);
+	}
+
+	.related-posts h2 {
+		margin: 0;
+		font-family: var(--font-serif);
+		font-size: 1.6rem;
+	}
+
+	.related-posts__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+		gap: var(--space-4);
+	}
+</style>
