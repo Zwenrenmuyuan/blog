@@ -1,6 +1,6 @@
 ---
 import { getPostPath, type Post } from '../lib/posts';
-import { siteConfig } from '../site.config';
+import { formatLongDate } from '../lib/date';
 import TagList from './TagList.astro';
 
 interface Props {
@@ -17,17 +17,17 @@ const {
   linkTags = false,
 } = Astro.props;
 const postPath = getPostPath(post);
-const dateFormatter = new Intl.DateTimeFormat(siteConfig.locale, {
-  dateStyle: 'long',
-  timeZone: siteConfig.timezone,
-});
 ---
 
-<article class:list={['post-card', `post-card--${variant}`]} data-post-card>
+<article
+	class:list={['post-card', `post-card--${variant}`]}
+	data-post-card
+	data-post-slug={post.id}
+>
 	<div class="post-card__meta">
 		{variant === 'featured' && <span>精选</span>}
 		<time datetime={post.data.publishedAt.toISOString()}>
-			{dateFormatter.format(post.data.publishedAt)}
+			{formatLongDate(post.data.publishedAt)}
 		</time>
 	</div>
 	{headingLevel === 3 ? (

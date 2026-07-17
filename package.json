@@ -26,6 +26,7 @@
     "build": "npm run check && astro build",
     "postbuild": "pagefind --site dist",
     "preview": "astro preview",
+    "test:unit": "node --test tests/unit/*.test.ts",
     "test:e2e": "npm run build && playwright test"
   },
   "dependencies": {

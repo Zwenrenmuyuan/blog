@@ -1,0 +1,119 @@
+---
+import { formatLongDate } from '../lib/date';
+import type { ArchiveYear } from '../lib/post-data';
+import { getPostPath, type Post } from '../lib/posts';
+
+interface Props {
+  archive: ArchiveYear<Post>[];
+}
+
+const { archive } = Astro.props;
+---
+
+<div class="archive" data-archive-list>
+	{archive.map((yearGroup) => (
+		<section class="archive__year" aria-labelledby={`archive-year-${yearGroup.year}`}>
+			<h2 id={`archive-year-${yearGroup.year}`}>{yearGroup.year}年</h2>
+			{yearGroup.months.map((monthGroup) => (
+				<section class="archive__month" aria-labelledby={`archive-month-${monthGroup.key}`}>
+					<h3 id={`archive-month-${monthGroup.key}`}>{monthGroup.label}</h3>
+					<ul>
+						{monthGroup.posts.map((post) => (
+							<li data-post-slug={post.id}>
+								<time datetime={post.data.publishedAt.toISOString()}>
+									{formatLongDate(post.data.publishedAt)}
+								</time>
+								<a href={getPostPath(post)}>{post.data.title}</a>
+							</li>
+						))}
+					</ul>
+				</section>
+			))}
+		</section>
+	))}
+</div>
+
+<style>
+	.archive,
+	.archive__year,
+	.archive__month {
+		display: grid;
+	}
+
+	.archive {
+		gap: var(--space-7);
+	}
+
+	.archive__year {
+		grid-template-columns: minmax(5rem, 0.22fr) 1fr;
+		gap: var(--space-5);
+	}
+
+	.archive__year > h2,
+	.archive__month h3 {
+		margin: 0;
+		font-family: var(--font-serif);
+	}
+
+	.archive__year > h2 {
+		font-size: 1.75rem;
+	}
+
+	.archive__month {
+		grid-column: 2;
+		grid-template-columns: minmax(3.5rem, 0.15fr) 1fr;
+		gap: var(--space-4);
+	}
+
+	.archive__month + .archive__month {
+		margin-block-start: var(--space-5);
+	}
+
+	.archive__month h3 {
+		color: var(--color-accent);
+		font-size: 1rem;
+	}
+
+	.archive__month ul {
+		display: grid;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.archive__month li {
+		display: grid;
+		padding-block: var(--space-3);
+		border-block-end: 1px solid var(--color-border);
+		grid-template-columns: minmax(8rem, 0.35fr) 1fr;
+		gap: var(--space-4);
+	}
+
+	.archive__month time {
+		color: var(--color-muted);
+		font-size: 0.875rem;
+	}
+
+	.archive__month a {
+		color: var(--color-text);
+		font-family: var(--font-serif);
+		font-weight: 700;
+	}
+
+	@media (max-width: 40rem) {
+		.archive__year,
+		.archive__month,
+		.archive__month li {
+			grid-template-columns: 1fr;
+		}
+
+		.archive__month {
+			grid-column: 1;
+			gap: var(--space-2);
+		}
+
+		.archive__month li {
+			gap: var(--space-1);
+		}
+	}
+</style>

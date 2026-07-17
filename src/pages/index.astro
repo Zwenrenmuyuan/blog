@@ -1,10 +1,19 @@
 ---
+import EmptyState from '../components/EmptyState.astro';
 import PostCard from '../components/PostCard.astro';
+import PostList from '../components/PostList.astro';
+import { getTagPath, tagEntries } from '../data/tags';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getPostBySlug } from '../lib/posts';
+import { countPostsByTag, selectCommonTags, selectHomepagePosts } from '../lib/post-data';
+import { getPublishedPosts } from '../lib/posts';
 import { siteConfig } from '../site.config';
 
-const welcomePost = await getPostBySlug('welcome', { includeDrafts: false });
+const posts = await getPublishedPosts();
+const { featured, recent } = selectHomepagePosts(posts, {
+  featuredLimit: 3,
+  recentLimit: 6,
+});
+const commonTags = selectCommonTags(countPostsByTag(posts, tagEntries), 6);
 ---
 
 <BaseLayout title={siteConfig.title} description={siteConfig.description}>
@@ -15,15 +24,71 @@ const welcomePost = await getPostBySlug('welcome', { includeDrafts: false });
 		<p class="publication-intro__description">{siteConfig.description}</p>
 	</section>
 
-	{welcomePost && (
-		<section class="starting-point" aria-labelledby="starting-point-title">
-			<header class="starting-point__header">
-				<p>第 01 期</p>
-				<h2 id="starting-point-title">从这里开始</h2>
+	<section class="home-section" aria-labelledby="featured-title" data-home-section="featured">
+		<header class="section-header">
+			<div>
+				<p>编辑选择</p>
+				<h2 id="featured-title">精选文章</h2>
+			</div>
+			<span>最多三篇</span>
+		</header>
+		{featured.length > 0 ? (
+			<div class="featured-posts">
+				{featured.map((post) => (
+					<PostCard post={post} headingLevel={3} variant="featured" linkTags />
+				))}
+			</div>
+		) : (
+			<EmptyState
+				title="文章正在准备中"
+				description="第一篇旁注发布后，会从这里开始呈现。"
+			/>
+		)}
+	</section>
+
+	{posts.length > 0 && (
+		<section class="home-section" aria-labelledby="recent-title" data-home-section="recent">
+			<header class="section-header">
+				<div>
+					<p>按时间浏览</p>
+					<h2 id="recent-title">最近更新</h2>
+				</div>
 			</header>
-			<PostCard post={welcomePost} headingLevel={3} variant="featured" />
+			<PostList
+				posts={recent}
+				headingLevel={3}
+				emptyTitle="暂时没有更多更新"
+				emptyDescription="新的文章发布后，会继续出现在这里。"
+			/>
 		</section>
 	)}
+
+	<section class="home-section" aria-labelledby="common-tags-title" data-home-section="tags">
+		<header class="section-header">
+			<div>
+				<p>按主题发现</p>
+				<h2 id="common-tags-title">常用标签</h2>
+			</div>
+		</header>
+		{commonTags.length > 0 ? (
+			<ul class="common-tags">
+				{commonTags.map((tag) => (
+					<li data-tag-id={tag.id}>
+						<a href={getTagPath(tag.id)}>
+							<span>{tag.label}</span>
+							<small>{tag.count} 篇文章</small>
+						</a>
+					</li>
+				))}
+			</ul>
+		) : (
+			<EmptyState title="标签尚未形成" description="有公开文章后，这里会按使用数量展示标签。" />
+		)}
+	</section>
+
+	<div class="home-action">
+		<a href="/posts/">查看全部文章</a>
+	</div>
 </BaseLayout>
 
 <style>
@@ -34,13 +99,12 @@ const welcomePost = await getPostBySlug('welcome', { includeDrafts: false });
 	}
 
 	.publication-intro__eyebrow,
-	.starting-point__header p {
+	.section-header p {
 		margin: 0;
 		color: var(--color-accent);
 		font-size: 0.8125rem;
 		font-weight: 700;
 		letter-spacing: 0.12em;
-		text-transform: uppercase;
 	}
 
 	.publication-intro h1 {
@@ -66,28 +130,86 @@ const welcomePost = await getPostBySlug('welcome', { includeDrafts: false });
 		color: var(--color-muted);
 	}
 
-	.starting-point {
+	.home-section {
 		display: grid;
-		margin-block-start: clamp(var(--space-8), 12vw, var(--space-9));
+		margin-block-start: clamp(var(--space-7), 10vw, var(--space-9));
 		gap: var(--space-5);
 	}
 
-	.starting-point__header {
+	.section-header {
 		display: flex;
 		align-items: end;
 		justify-content: space-between;
 		gap: var(--space-4);
 	}
 
-	.starting-point__header h2 {
-		margin: 0;
+	.section-header h2 {
+		margin: var(--space-1) 0 0;
 		font-family: var(--font-serif);
 		font-size: clamp(1.5rem, 3vw, 2.25rem);
 		line-height: 1.25;
 	}
 
+	.section-header > span {
+		color: var(--color-muted);
+		font-size: 0.8125rem;
+	}
+
+	.featured-posts {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+		gap: var(--space-4);
+	}
+
+	.common-tags {
+		display: grid;
+		margin: 0;
+		padding: 0;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+		gap: var(--space-3);
+		list-style: none;
+	}
+
+	.common-tags a {
+		display: flex;
+		padding: var(--space-4);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-medium);
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-3);
+		color: var(--color-text);
+		text-decoration: none;
+	}
+
+	.common-tags a:hover {
+		border-color: var(--color-accent);
+		color: var(--color-accent);
+	}
+
+	.common-tags span {
+		font-family: var(--font-serif);
+		font-size: 1.125rem;
+		font-weight: 700;
+	}
+
+	.common-tags small {
+		color: var(--color-muted);
+		white-space: nowrap;
+	}
+
+	.home-action {
+		margin-block-start: var(--space-7);
+		padding-block-start: var(--space-5);
+		border-block-start: 1px solid var(--color-border);
+	}
+
+	.home-action a {
+		font-weight: 700;
+	}
+
 	@media (max-width: 32rem) {
-		.starting-point__header {
+		.section-header {
 			align-items: start;
 			flex-direction: column;
 			gap: var(--space-1);

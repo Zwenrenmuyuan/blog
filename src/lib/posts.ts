@@ -4,6 +4,7 @@ import {
   type CollectionEntry,
 } from 'astro:content';
 
+import { comparePostRecords } from './post-data';
 import { isPostSlug } from './post-slug';
 
 export type Post = CollectionEntry<'posts'>;
@@ -17,17 +18,7 @@ function canIncludeDrafts(options: PostQueryOptions): boolean {
 }
 
 export function comparePosts(first: Post, second: Post): number {
-  const dateDifference = second.data.publishedAt.getTime() - first.data.publishedAt.getTime();
-
-  if (dateDifference !== 0) {
-    return dateDifference;
-  }
-
-  if (first.id === second.id) {
-    return 0;
-  }
-
-  return first.id < second.id ? -1 : 1;
+  return comparePostRecords(first, second);
 }
 
 export async function getPosts(options: PostQueryOptions = {}): Promise<Post[]> {
@@ -35,6 +26,10 @@ export async function getPosts(options: PostQueryOptions = {}): Promise<Post[]> 
   const posts = await getCollection('posts', ({ data }) => includeDrafts || !data.draft);
 
   return posts.sort(comparePosts);
+}
+
+export async function getPublishedPosts(): Promise<Post[]> {
+  return getPosts({ includeDrafts: false });
 }
 
 export async function getPostBySlug(

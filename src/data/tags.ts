@@ -7,6 +7,10 @@ export interface Tag {
   description: string;
 }
 
+export interface TagEntry extends Tag {
+  id: TagId;
+}
+
 export const tags = {
   technology: {
     label: '技术',
@@ -22,10 +26,16 @@ export const tags = {
   },
 } satisfies Record<TagId, Tag>;
 
+export const tagEntries: TagEntry[] = tagIds.map((id) => ({ id, ...tags[id] }));
+
 export function isTagId(value: string): value is TagId {
   return tagIds.some((tagId) => tagId === value);
 }
 
 export function getTag(tagId: TagId): Tag {
   return tags[tagId];
+}
+
+export function getTagPath(tagId: TagId): `/tags/${TagId}/` {
+  return `/tags/${tagId}/`;
 }

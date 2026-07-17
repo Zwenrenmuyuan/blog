@@ -1,0 +1,45 @@
+---
+import PageHeader from '../components/PageHeader.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../site.config';
+---
+
+<BaseLayout
+	title={`页面未找到 | ${siteConfig.title}`}
+	description="请求的页面不存在，可能已经移动、地址有误或尚未发布。"
+>
+	<PageHeader
+		eyebrow="404"
+		title="页面没有找到"
+		description="这个页面可能已经移动、地址有误，或者还没有发布。"
+	/>
+	<nav class="not-found-actions" aria-label="未找到页面的后续操作">
+		<a href="/">返回首页</a>
+		<a href="/posts/">浏览全部文章</a>
+	</nav>
+</BaseLayout>
+
+<style>
+	.not-found-actions {
+		display: flex;
+		margin-block-start: var(--space-6);
+		flex-wrap: wrap;
+		gap: var(--space-4);
+	}
+
+	.not-found-actions a {
+		display: inline-flex;
+		min-height: 2.75rem;
+		padding-inline: var(--space-4);
+		border: 1px solid var(--color-control-border);
+		border-radius: var(--radius-small);
+		align-items: center;
+		text-decoration: none;
+	}
+
+	.not-found-actions a:first-child {
+		border-color: var(--color-accent);
+		background: var(--color-accent);
+		color: var(--color-on-accent);
+	}
+</style>

@@ -1,0 +1,93 @@
+---
+import PageHeader from '../../components/PageHeader.astro';
+import { tagEntries } from '../../data/tags';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { siteConfig } from '../../site.config';
+---
+
+<BaseLayout
+	title={`关于 | ${siteConfig.title}`}
+	description={`了解${siteConfig.title}记录的内容和发布方式。`}
+	mainClass="about-main"
+>
+	<PageHeader
+		eyebrow="关于这份刊物"
+		title="关于旁注"
+		description="旁注是一份记录技术、生活与阅读的个人刊物。这里收集实践中的方法、日常里的观察，以及值得反复翻阅的片段。"
+	/>
+	<div class="about-content">
+		<section aria-labelledby="about-topics">
+			<h2 id="about-topics">这里记录什么</h2>
+			<dl>
+				{tagEntries.map((tag) => (
+					<div>
+						<dt>{tag.label}</dt>
+						<dd>{tag.description}</dd>
+					</div>
+				))}
+			</dl>
+		</section>
+		<section aria-labelledby="about-publishing">
+			<h2 id="about-publishing">如何发布</h2>
+			<p>
+				文章使用 Markdown 或 MDX 写作，经过内容校验和静态构建后，成为可以直接阅读的网页。网站不依赖数据库或在线管理后台，内容保存在自己的文件中。
+			</p>
+		</section>
+	</div>
+</BaseLayout>
+
+<style>
+	.about-content {
+		display: grid;
+		width: min(100%, var(--reading-max));
+		margin-block-start: var(--space-7);
+		gap: var(--space-7);
+	}
+
+	.about-content section {
+		display: grid;
+		gap: var(--space-4);
+	}
+
+	.about-content h2,
+	.about-content p,
+	.about-content dl,
+	.about-content dd {
+		margin: 0;
+	}
+
+	.about-content h2 {
+		font-family: var(--font-serif);
+		font-size: 1.75rem;
+	}
+
+	.about-content dl {
+		display: grid;
+		gap: var(--space-3);
+	}
+
+	.about-content dl div {
+		display: grid;
+		padding-block: var(--space-3);
+		border-block-end: 1px solid var(--color-border);
+		grid-template-columns: minmax(4rem, 0.2fr) 1fr;
+		gap: var(--space-4);
+	}
+
+	.about-content dt {
+		font-family: var(--font-serif);
+		font-weight: 700;
+	}
+
+	.about-content dd,
+	.about-content p {
+		color: var(--color-muted);
+	}
+
+	@media (max-width: 30rem) {
+		.about-content dl div {
+			grid-template-columns: 1fr;
+			gap: var(--space-1);
+		}
+	}
+</style>

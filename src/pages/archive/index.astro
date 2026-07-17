@@ -1,0 +1,41 @@
+---
+import ArchiveList from '../../components/ArchiveList.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { groupPostsByArchive } from '../../lib/post-data';
+import { getPublishedPosts } from '../../lib/posts';
+import { siteConfig } from '../../site.config';
+
+const posts = await getPublishedPosts();
+const archive = groupPostsByArchive(posts, siteConfig.timezone);
+---
+
+<BaseLayout
+	title={`归档 | ${siteConfig.title}`}
+	description={`按年份和月份浏览${siteConfig.title}已经发布的文章。`}
+>
+	<PageHeader
+		eyebrow="时间索引"
+		title="归档"
+		description="按年份和月份回看已经发布的内容。"
+	/>
+	<section class="archive-page" aria-label="文章归档">
+		{archive.length > 0 ? (
+			<ArchiveList archive={archive} />
+		) : (
+			<EmptyState
+				title="还没有可以归档的文章"
+				description="第一篇文章发布后，会按照年月出现在这里。"
+				actionHref="/"
+				actionLabel="返回首页"
+			/>
+		)}
+	</section>
+</BaseLayout>
+
+<style>
+	.archive-page {
+		margin-block-start: var(--space-7);
+	}
+</style>

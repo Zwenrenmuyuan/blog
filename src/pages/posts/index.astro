@@ -1,0 +1,36 @@
+---
+import PageHeader from '../../components/PageHeader.astro';
+import PostList from '../../components/PostList.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPublishedPosts } from '../../lib/posts';
+import { siteConfig } from '../../site.config';
+
+const posts = await getPublishedPosts();
+const countLabel = `${posts.length} 篇已发布文章`;
+---
+
+<BaseLayout
+	title={`全部文章 | ${siteConfig.title}`}
+	description={`浏览${siteConfig.title}已经发布的全部文章。`}
+>
+	<PageHeader
+		eyebrow="全部内容"
+		title="全部文章"
+		description={`${countLabel}，按发布日期从新到旧排列。`}
+	/>
+	<section class="posts-page" aria-label="已发布文章">
+		<PostList
+			posts={posts}
+			emptyTitle="暂时还没有公开文章"
+			emptyDescription="第一篇文章发布后，会出现在这里。"
+			emptyActionHref="/"
+			emptyActionLabel="返回首页"
+		/>
+	</section>
+</BaseLayout>
+
+<style>
+	.posts-page {
+		margin-block-start: var(--space-6);
+	}
+</style>

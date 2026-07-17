@@ -68,7 +68,7 @@ test('桌面宽度直接展示横向导航', async ({ page }) => {
     await expect(page.locator('[data-mobile-navigation] > summary')).toBeHidden();
     await expect(page.getByRole('navigation', { name: '主导航' })).toBeVisible();
     await expect(page.getByRole('link', { name: '首页', exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: '欢迎文章', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: '文章', exact: true })).toBeVisible();
   }
 });
 
@@ -88,11 +88,11 @@ test('禁用 JavaScript 后核心导航仍然可用', async ({ browser }) => {
     await summary.press('Enter');
     await expect(navigation).toHaveAttribute('open', '');
 
-    const welcomeLink = page.getByRole('link', { name: '欢迎文章', exact: true });
-    await expect(welcomeLink).toBeVisible();
-    await welcomeLink.click();
-    await expect(page).toHaveURL('/posts/welcome/');
-    await expect(page.getByRole('heading', { level: 1, name: '欢迎来到旁注' })).toBeVisible();
+    const postsLink = page.getByRole('link', { name: '文章', exact: true });
+    await expect(postsLink).toBeVisible();
+    await postsLink.click();
+    await expect(page).toHaveURL('/posts/');
+    await expect(page.getByRole('heading', { level: 1, name: '全部文章' })).toBeVisible();
   } finally {
     await context.close();
   }

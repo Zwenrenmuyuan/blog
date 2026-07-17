@@ -1,0 +1,32 @@
+---
+import PageHeader from '../../components/PageHeader.astro';
+import TagSummaryList from '../../components/TagSummaryList.astro';
+import { tagEntries } from '../../data/tags';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { countPostsByTag } from '../../lib/post-data';
+import { getPublishedPosts } from '../../lib/posts';
+import { siteConfig } from '../../site.config';
+
+const posts = await getPublishedPosts();
+const tagCounts = countPostsByTag(posts, tagEntries);
+---
+
+<BaseLayout
+	title={`标签 | ${siteConfig.title}`}
+	description={`按主题浏览${siteConfig.title}的技术、生活与阅读文章。`}
+>
+	<PageHeader
+		eyebrow="主题索引"
+		title="标签"
+		description="从技术实践、生活观察和阅读笔记三个方向浏览旁注。"
+	/>
+	<section class="tags-page" aria-label="全部标签">
+		<TagSummaryList tagCounts={tagCounts} />
+	</section>
+</BaseLayout>
+
+<style>
+	.tags-page {
+		margin-block-start: var(--space-6);
+	}
+</style>

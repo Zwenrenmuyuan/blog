@@ -1,5 +1,5 @@
 ---
-import { getTag, type TagId } from '../data/tags';
+import { getTag, getTagPath, type TagId } from '../data/tags';
 import TagPill from './TagPill.astro';
 
 interface Props {
@@ -14,7 +14,7 @@ const { tagIds, linked = false, label = '文章标签' } = Astro.props;
 <ul class="tag-list" aria-label={label}>
 	{tagIds.map((tagId) => (
 		<li>
-			<TagPill label={getTag(tagId).label} href={linked ? `/tags/${tagId}/` : undefined} />
+		<TagPill label={getTag(tagId).label} href={linked ? getTagPath(tagId) : undefined} />
 		</li>
 	))}
 </ul>

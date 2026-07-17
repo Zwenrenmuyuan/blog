@@ -1,0 +1,68 @@
+---
+import { getTagPath, type TagId } from '../data/tags';
+import type { TagCount } from '../lib/post-data';
+
+interface Props {
+  tagCounts: TagCount<TagId>[];
+}
+
+const { tagCounts } = Astro.props;
+---
+
+<ul class="tag-summary-list" data-tag-summary-list>
+	{tagCounts.map((tag) => (
+		<li data-tag-id={tag.id}>
+			<div>
+				<h2><a href={getTagPath(tag.id)}>{tag.label}</a></h2>
+				<p>{tag.description}</p>
+			</div>
+			<p class="tag-summary-list__count">{tag.count} 篇文章</p>
+		</li>
+	))}
+</ul>
+
+<style>
+	.tag-summary-list {
+		display: grid;
+		margin: 0;
+		padding: 0;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+		gap: var(--space-4);
+		list-style: none;
+	}
+
+	.tag-summary-list > li {
+		display: flex;
+		min-width: 0;
+		padding: var(--space-5);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-medium);
+		flex-direction: column;
+		justify-content: space-between;
+		gap: var(--space-5);
+	}
+
+	.tag-summary-list h2,
+	.tag-summary-list p {
+		margin: 0;
+	}
+
+	.tag-summary-list h2 {
+		font-family: var(--font-serif);
+		font-size: 1.5rem;
+	}
+
+	.tag-summary-list h2 a {
+		color: var(--color-text);
+	}
+
+	.tag-summary-list div p,
+	.tag-summary-list__count {
+		margin-block-start: var(--space-2);
+		color: var(--color-muted);
+	}
+
+	.tag-summary-list__count {
+		font-size: 0.875rem;
+	}
+</style>

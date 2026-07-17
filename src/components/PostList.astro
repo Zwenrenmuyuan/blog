@@ -1,0 +1,48 @@
+---
+import type { Post } from '../lib/posts';
+import EmptyState from './EmptyState.astro';
+import PostCard from './PostCard.astro';
+
+interface Props {
+  posts: Post[];
+  headingLevel?: 2 | 3;
+  emptyTitle: string;
+  emptyDescription: string;
+  emptyActionHref?: string;
+  emptyActionLabel?: string;
+}
+
+const {
+  posts,
+  headingLevel = 2,
+  emptyTitle,
+  emptyDescription,
+  emptyActionHref,
+  emptyActionLabel,
+} = Astro.props;
+---
+
+{posts.length > 0 ? (
+	<div class="post-list" data-post-list>
+		{posts.map((post) => (
+			<PostCard post={post} headingLevel={headingLevel} linkTags />
+		))}
+	</div>
+) : (
+	<EmptyState
+		title={emptyTitle}
+		description={emptyDescription}
+		actionHref={emptyActionHref}
+		actionLabel={emptyActionLabel}
+	/>
+)}
+
+<style>
+	.post-list {
+		display: grid;
+	}
+
+	.post-list :global(.post-card + .post-card) {
+		border-block-start: 0;
+	}
+</style>
