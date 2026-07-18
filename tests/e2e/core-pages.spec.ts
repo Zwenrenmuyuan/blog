@@ -4,6 +4,7 @@ import { expect, test, type Page } from '@playwright/test';
 const publicRoutes = [
   '/',
   '/posts/',
+  '/posts/kimi-k3-open-frontier/',
   '/posts/welcome/',
   '/tags/',
   '/tags/technology/',
@@ -17,6 +18,11 @@ const publicRoutes = [
 const pageContracts = [
   { route: '/', title: '旁注｜生活和工作是正文，这里记录沿途的旁注', heading: '旁注' },
   { route: '/posts/', title: '全部文章｜旁注', heading: '全部文章' },
+  {
+    route: '/posts/kimi-k3-open-frontier/',
+    title: 'Kimi K3 真正让我意外的，是 2.8T｜旁注',
+    heading: 'Kimi K3 真正让我意外的，是 2.8T',
+  },
   { route: '/posts/welcome/', title: '欢迎来到旁注｜旁注', heading: '欢迎来到旁注' },
   { route: '/tags/', title: '标签｜旁注', heading: '标签' },
   { route: '/tags/technology/', title: '技术｜标签｜旁注', heading: '技术' },
@@ -57,7 +63,8 @@ test('首页使用真实文章完成精选去重、最近更新和常用标签',
   const featured = page.locator('[data-home-section="featured"]');
   const recent = page.locator('[data-home-section="recent"]');
 
-  await expect(featured.locator('[data-post-card]')).toHaveCount(1);
+  await expect(featured.locator('[data-post-card]')).toHaveCount(2);
+  await expect(featured.locator('[data-post-slug="kimi-k3-open-frontier"]')).toBeVisible();
   await expect(featured.locator('[data-post-slug="welcome"]')).toBeVisible();
   await expect(recent.locator('[data-post-card]')).toHaveCount(0);
   await expect(recent.locator('[data-empty-state]')).toContainText('暂时没有更多更新');
@@ -68,15 +75,20 @@ test('首页使用真实文章完成精选去重、最近更新和常用标签',
 
 test('文章列表、标签计数和归档使用同一份公开内容', async ({ page }) => {
   await page.goto('/posts/');
-  await expect(page.locator('[data-post-list] [data-post-card]')).toHaveCount(1);
+  await expect(page.locator('[data-post-list] [data-post-card]')).toHaveCount(2);
+  await expect(page.locator('[data-post-slug="kimi-k3-open-frontier"]')).toBeVisible();
   await expect(page.locator('[data-post-slug="welcome"]')).toBeVisible();
 
   await page.goto('/tags/');
-  for (const tagId of ['technology', 'life', 'reading']) {
-    await expect(page.locator(`[data-tag-id="${tagId}"]`)).toContainText('1 篇文章');
-  }
+  await expect(page.locator('[data-tag-id="technology"]')).toContainText('2 篇文章');
+  await expect(page.locator('[data-tag-id="life"]')).toContainText('1 篇文章');
+  await expect(page.locator('[data-tag-id="reading"]')).toContainText('1 篇文章');
 
-  for (const route of ['/tags/technology/', '/tags/life/', '/tags/reading/']) {
+  await page.goto('/tags/technology/');
+  await expect(page.locator('[data-post-slug="kimi-k3-open-frontier"]')).toBeVisible();
+  await expect(page.locator('[data-post-slug="welcome"]')).toBeVisible();
+
+  for (const route of ['/tags/life/', '/tags/reading/']) {
     await page.goto(route);
     await expect(page.locator('[data-post-slug="welcome"]')).toBeVisible();
   }
@@ -84,6 +96,9 @@ test('文章列表、标签计数和归档使用同一份公开内容', async ({
   await page.goto('/archive/');
   await expect(page.getByRole('heading', { level: 2, name: '2026年' })).toBeVisible();
   await expect(page.getByRole('heading', { level: 3, name: '7月' })).toBeVisible();
+  await expect(page.locator('[data-post-slug="kimi-k3-open-frontier"]')).toContainText(
+    'Kimi K3 真正让我意外的，是 2.8T',
+  );
   await expect(page.locator('[data-post-slug="welcome"]')).toContainText('欢迎来到旁注');
 });
 
@@ -138,7 +153,7 @@ test('全部核心页面在目标宽度下没有页面级横向滚动', async ({
 });
 
 test('新增页面没有严重或致命的无障碍问题', async ({ page }) => {
-  for (const route of ['/posts/', '/tags/', '/tags/technology/', '/archive/', '/about/', '/this-page-does-not-exist/']) {
+  for (const route of ['/posts/', '/posts/kimi-k3-open-frontier/', '/tags/', '/tags/technology/', '/archive/', '/about/', '/this-page-does-not-exist/']) {
     await page.goto(route);
     const results = await new AxeBuilder({ page }).analyze();
     const blockingViolations = results.violations.filter(

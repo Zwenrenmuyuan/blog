@@ -40,11 +40,15 @@ test('欢迎文章在移动端使用原生折叠目录', async ({ page }) => {
   await expect(mobileToc.getByRole('link')).toHaveCount(3);
 });
 
-test('单篇公开文章不渲染封面、相邻文章或相关文章空模块', async ({ page }) => {
+test('欢迎文章在多篇公开内容下显示相邻文章且不渲染空模块', async ({ page }) => {
   await page.goto('/posts/welcome/');
 
   await expect(page.locator('[data-post-cover]')).toHaveCount(0);
-  await expect(page.locator('[data-post-navigation]')).toHaveCount(0);
+  const navigation = page.locator('[data-post-navigation]');
+  await expect(navigation).toBeVisible();
+  await expect(navigation.locator('a[href="/posts/kimi-k3-open-frontier/"]')).toContainText(
+    'Kimi K3 真正让我意外的，是 2.8T',
+  );
   await expect(page.locator('[data-related-posts]')).toHaveCount(0);
   await expect(page.getByRole('link', { name: '返回全部文章' })).toBeVisible();
 });

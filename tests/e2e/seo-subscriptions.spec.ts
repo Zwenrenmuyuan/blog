@@ -8,6 +8,7 @@ const indexableRoutes = [
   '/about/',
   '/archive/',
   '/posts/',
+  '/posts/kimi-k3-open-frontier/',
   '/posts/welcome/',
   '/tags/',
   '/tags/life/',
@@ -124,9 +125,10 @@ test('RSS、sitemap 和 robots 使用站点配置并排除草稿', async ({ page
   const rss = await parseXml(page, rssText);
   expect(rss.valid).toBe(true);
   expect(rssText).toContain('<language>zh-CN</language>');
+  expect(rssText).toContain(`${siteUrl}/posts/kimi-k3-open-frontier/`);
   expect(rssText).toContain(`${siteUrl}/posts/welcome/`);
-  expect(rssText.match(/<item>/g)).toHaveLength(1);
-  expect(rssText.match(/<category>/g)).toHaveLength(3);
+  expect(rssText.match(/<item>/g)).toHaveLength(2);
+  expect(rssText.match(/<category>/g)).toHaveLength(4);
   expect(rssText).not.toContain('style-test');
 
   const sitemapIndexResponse = await request.get('/sitemap-index.xml');
@@ -149,6 +151,7 @@ test('RSS、sitemap 和 robots 使用站点配置并排除草稿', async ({ page
 
 test('生产产物保持纯静态并仅索引公开文章', async () => {
   expect(existsSync('dist/pagefind/pagefind.js')).toBe(true);
+  expect(existsSync('dist/posts/kimi-k3-open-frontier/index.html')).toBe(true);
   expect(existsSync('dist/posts/style-test')).toBe(false);
   expect(existsSync('dist/_worker.js')).toBe(false);
   expect(existsSync('dist/functions')).toBe(false);
