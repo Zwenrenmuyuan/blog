@@ -11,6 +11,9 @@ test('全站布局包含可访问的页头、正文和页脚', async ({ page }) 
   await page.goto('/');
 
   await expect(page.getByRole('banner')).toBeVisible();
+  const brand = page.getByRole('link', { name: '旁注', exact: true });
+  await expect(brand).toBeVisible();
+  await expect(brand.locator('.brand-mark')).toBeVisible();
   await expect(page.getByRole('main')).toHaveAttribute('id', 'main-content');
   await expect(page.getByRole('contentinfo')).toBeVisible();
 
@@ -19,6 +22,21 @@ test('全站布局包含可访问的页头、正文和页脚', async ({ page }) 
   await expect(skipLink).toBeVisible();
   await skipLink.press('Enter');
   await expect(page.getByRole('main')).toBeFocused();
+});
+
+test('页面声明站点图标且资源可访问', async ({ page, request }) => {
+  await page.goto('/');
+
+  await expect(page.locator('link[rel="icon"][href="/favicon.svg"]')).toHaveCount(1);
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute(
+    'href',
+    '/apple-touch-icon.png',
+  );
+
+  for (const path of ['/favicon.svg', '/favicon-32x32.png', '/apple-touch-icon.png']) {
+    const response = await request.get(path);
+    expect(response.ok(), `${path} 无法访问`).toBe(true);
+  }
 });
 
 test('首页和文章页在目标宽度下没有页面级横向滚动', async ({ page }) => {

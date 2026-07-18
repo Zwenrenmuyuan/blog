@@ -1,5 +1,6 @@
 ---
 import { isNavigationItemCurrent, type NavigationItem } from '../data/navigation';
+import LogoMark from './LogoMark.astro';
 import ThemePicker from './ThemePicker.astro';
 
 interface Props {
@@ -12,7 +13,10 @@ const { currentPath, items } = Astro.props;
 
 <header class="site-header">
 	<div class="site-header__inner">
-		<a class="site-header__brand" href="/">旁注</a>
+		<a class="site-header__brand" href="/">
+			<LogoMark />
+			<span>旁注</span>
+		</a>
 		<nav class="site-navigation desktop-navigation" aria-label="主导航">
 			<ul>
 				{items.map((item) => (
@@ -120,12 +124,30 @@ const { currentPath, items } = Astro.props;
 	}
 
 	.site-header__brand {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
 		color: var(--color-text);
 		font-family: var(--font-serif);
 		font-size: 1.35rem;
 		font-weight: 700;
 		letter-spacing: 0.08em;
 		text-decoration: none;
+	}
+
+	.site-header__brand :global(.brand-mark) {
+		width: 1.75rem;
+		height: 1.75rem;
+		flex: none;
+		overflow: visible;
+	}
+
+	.site-header__brand :global(.brand-mark__path) {
+		fill: var(--color-text);
+	}
+
+	.site-header__brand :global(.brand-mark__marker) {
+		fill: var(--color-accent);
 	}
 
 	.site-header__brand:hover {
